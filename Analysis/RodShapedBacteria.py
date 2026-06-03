@@ -75,7 +75,7 @@ class RodShapedBacterium(object):
     smoothCutOff=6 # When smoothing cells, this is the max dist from rcm to consider
     cell_hash = {}
 
-    def __init__(self,cell_id,non_dimzeta,length,radius,
+    def __init__(self,cell_id,Lambda,length,radius,
                       pos_x,pos_y,pos_z,
                       ori_x,ori_y,ori_z,
                       virtual_center_x=0.0,
@@ -91,7 +91,7 @@ class RodShapedBacterium(object):
                       projection="xy",upper_link=None,lower_link=None):
 
         self.cell_id          = int(cell_id)    # cell id
-        self.non_dimzeta      = non_dimzeta     # non-dimensional zeta
+        self.Lambda           = Lambda          # cell drag coefficient/ base drag coefficient
         self.length           = length          # pole to pole length
         self.radius           = radius          # spherocylinder radius
         self.diameter         = 2*radius        # spherocylinder diameter

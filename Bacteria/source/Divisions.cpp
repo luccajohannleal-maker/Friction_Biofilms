@@ -207,7 +207,7 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
       mAvgGrwthRate*1.5*growthRateMultiplier2
     ),
     0.5*divlengthRateMultiplier*(mAvgDivLen-2*mRadius),
-    mLinkingProb,mRadius, non_dimZeta
+    mLinkingProb,mRadius, Lambda
   };
 
   cell_list.push_back(
@@ -227,7 +227,7 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
         mAvgGrwthRate*1.5*growthRateMultiplier2
       ),
       0.5*divlengthRateMultiplier*(mAvgDivLen-2*mRadius),
-       mLinkingProb, mRadius, non_dimZeta
+       mLinkingProb, mRadius, Lambda
     }
   );
 

@@ -86,10 +86,10 @@ RodShapedBacterium::RodShapedBacterium (
   double init_length,
   double linking_prob,
   double radius,
-  double nondim_zeta
+  double Lambda
 ) :
  mPos{_x,_y,_z}, mAngles {theta,alpha,0}, mLength {init_length},
- mGrwthRtePreFac {grwthPreFac},mLinkingProb{linking_prob},mRadius{radius},non_dimZeta{nondim_zeta}
+ mGrwthRtePreFac {grwthPreFac},mLinkingProb{linking_prob},mRadius{radius},Lambda{Lambda}
 {
   mId = counter++;           // increment unique counter
   // Prevent avalanche of divisions
@@ -104,9 +104,9 @@ RodShapedBacterium::RodShapedBacterium (const Vec3 &rcm,
                           double init_length,
                           double linking_prob,
                           double radius,
-                          double nondim_zeta) :
+                          double Lambda) :
              RodShapedBacterium{rcm.x,rcm.y,rcm.z,theta,alpha,
-                         grwthPreFac,init_length,linking_prob,radius,nondim_zeta}
+                         grwthPreFac,init_length,linking_prob,radius,Lambda}
 {}
 void initialiseRodParameters(
   double aspect_ratio,
@@ -166,7 +166,7 @@ void RodShapedBacterium::move(double dt)
   bodyFrameAngVel.y=0;
   mVel.z=0;
 #endif
-  // Should phi be mod 2 pi? - no influence on non dim zeta
+  // Should phi be mod 2 pi?
   mAngles+=bodyFrameAngVel*dt;
   mPos+=mVel*dt;
 }

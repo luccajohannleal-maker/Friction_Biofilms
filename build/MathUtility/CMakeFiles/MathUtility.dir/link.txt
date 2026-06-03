@@ -1,0 +1,2 @@
+/usr/bin/ar qc libMathUtility.a CMakeFiles/MathUtility.dir/source/MathUtility.cpp.o CMakeFiles/MathUtility.dir/source/RandUtil.cpp.o
+/usr/bin/ranlib libMathUtility.a

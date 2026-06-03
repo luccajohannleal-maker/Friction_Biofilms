@@ -109,7 +109,7 @@ namespace constants
     rodGrwthRtePreFac * baseTimeScale / baseLengthScale
   };
   inline constexpr double nondim_rodModE{ rodModE / baseModE };
-  inline constexpr double nondim_rodZeta{ 
+  inline constexpr double rodLambda{ 
     rodZeta / baseZeta 
   };
   inline constexpr double nondim_rodSpheroDiam{
@@ -150,7 +150,7 @@ namespace constants
   inline constexpr double candidaAvgDivLen{ avg_div_L };            // microns
 
   // Non-dimensional
-  inline constexpr double nondim_candidaZeta{
+  inline constexpr double candidaLambda{
     candidaZeta / baseZeta
   };
   inline constexpr double nondim_candidaGrwthRtePreFac

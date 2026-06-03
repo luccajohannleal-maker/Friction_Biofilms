@@ -1,0 +1,2 @@
+/usr/bin/ar qc libForces.a CMakeFiles/Forces.dir/source/forces.cpp.o
+/usr/bin/ranlib libForces.a

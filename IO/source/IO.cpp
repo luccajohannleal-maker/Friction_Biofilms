@@ -5,7 +5,7 @@ std::vector<std::string> col_headers
 {
   "cell_type\t",
   "cell_id\t",
-  "non_dimzeta\t",
+  "Lambda\t",
   "length\t",
   "radius\t",
   "pos_x\t",  // com position vector components
@@ -22,7 +22,7 @@ std::vector<std::string> col_headers
 {
   "cell_type\t",
   "cell_id\t",
-  "non_dimzeta\t",
+  "Lambda\t",
   "length\t",
   "radius\t",
   "pos_x\t",  // com position vector components
@@ -77,7 +77,7 @@ void populateCellsFromFile(
 
     std::string cell_type; ss >> cell_type;
     int id; ss>>id;
-    double non_dimzeta; ss >> non_dimzeta;
+    double Lambda; ss >> Lambda;
     double length; ss>>length;
     double radius; ss>>radius;
     Vec3 pos; ss>>pos.x; ss>>pos.y; ss>>pos.z;
@@ -102,7 +102,7 @@ void populateCellsFromFile(
           0.5*constants::pi,                  // alpha
           constants::nondim_rodGrwthRtePreFac,   // grwthPreFac
           length,                        // init_length
-          non_dimzeta                     // non_dimZeta
+          Lambda                     // Lambda
         )
       );
     }
@@ -121,7 +121,7 @@ void populateCellsFromFile(
           0.5*constants::pi,                  // alpha
           constants::nondim_rodGrwthRtePreFac,   // grwthPreFac
           length,                        // init_length
-          non_dimzeta                     // non_dimZeta
+          Lambda                          // cell drag coeff / base drag coeff
         )
       );
       std::cout << "Need to add in springs" << '\n';

@@ -16,18 +16,18 @@ from shapely.geometry import Point
 def add_polygon_to_plot(ax, cell, fc, ec):
     cell.addElementToPlot(ax, colour=fc, ec=ec)
 
-def zeta_status_to_color(cell):
+def Lambda_status_to_color(cell):
     """
-    Returns a color based on the zeta, drag coefficent of the cell.
-    If zeta is 1.0, return light blue. 
-    Otherwise, return a shade of red based on the zeta value. 
-    Darker red for higher zeta, lighter red for lower zeta.
+    Returns a color based on the Lambda, drag coefficent of the cell.
+    If Lambda is 1.0, return light blue. 
+    Otherwise, return a shade of red based on the Lambda value. 
+    Darker red for higher Lambda, lighter red for lower Lambda.
     """
-    zeta = cell.non_dimzeta
-    if zeta == 1.0:
+    Lambda = cell.Lambda
+    if Lambda == 1.0:
         return "#00ffff"
-    if zeta != 1.0:
-        return (255*zeta/255, 0, 0, 1)
+    if Lambda != 1.0:
+        return (255*Lambda/255, 0, 0, 1)
 
 
 def chaining_status_to_color(cell):
@@ -82,7 +82,7 @@ def addAllCellsToPlot(cells, ax, ax_rng, alpha=1, show_id=False, ec='k'):
         ax.add_collection(PatchCollection(patches, match_original=True, zorder=1))
     except Exception as e:
         for cell in cells:
-            cell.colour = zeta_status_to_color(cell)
+            cell.colour = Lambda_status_to_color(cell)
             add_polygon_to_plot(ax=ax, cell=cell, fc=cell.colour, ec=ec)
 
 def addSpringLinks(cells, ax, ax_rng, show_id=False):

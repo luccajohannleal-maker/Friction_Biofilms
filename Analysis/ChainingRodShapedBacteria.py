@@ -26,7 +26,7 @@ class ChainingRodShapedBacterium(RodShapedBacterium):
     bending_moduli=1
     # cell_hash = {}
 
-    def __init__(self,cell_id,non_dimzeta,length,radius,
+    def __init__(self,cell_id,Lambda,length,radius,
                       pos_x,pos_y,pos_z,
                       ori_x,ori_y,ori_z,
                       upper_link=None,lower_link=None,
@@ -42,7 +42,7 @@ class ChainingRodShapedBacterium(RodShapedBacterium):
                       neighbours=None):
         super().__init__(
             cell_id           = cell_id,
-            non_dimzeta       = non_dimzeta,
+            Lambda            = Lambda,
             length            = length,
             radius            = radius,
             pos_x             = pos_x,

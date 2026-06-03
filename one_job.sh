@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=CA1_PA1
-#SBATCH --output=/Candida-project-main/log/CA1_PA1%j.txt
-#SBATCH --error=/Candida-project-main/log/CA1_PA1%j.txt
+#SBATCH --job-name=FricBiof_MSc1
+#SBATCH --output=/FreeGrow_FrictionBiofilms/log/FricBiof_MSc1%j.txt
+#SBATCH --error=/FreeGrow_FrictionBiofilms/log/FricBiof_MSc1%j.txt
 #SBATCH --partition=long
 #SBATCH --time=168:00:00
 #SBATCH --cpus-per-task=16
@@ -12,13 +12,13 @@ ulimit -c unlimited # this is for debugging if needed
 
 # Get the repeat index from the argument
 REPEAT_INDEX=$1
-NUM_CA=1
-NUM_PA=1
+FRIC_COEFF=8
+
 
 # Define directories
-BASE_DIR="/Candida-project-main/build/Main"
+BASE_DIR="/FreeGrow_FrictionBiofilms/build/Main"
 
-REPEAT_DIR="/data_production/VERTICAL_ORI/CA${NUM_CA}_PA${NUM_PA}/repeat${REPEAT_INDEX}/"
+REPEAT_DIR="/data_production/VERTICAL_ORI/lambda${FRIC_COEFF}/repeat${REPEAT_INDEX}/"
 
 # Create the directory for the repeat
 mkdir -p "$REPEAT_DIR"

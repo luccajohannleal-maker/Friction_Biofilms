@@ -47,12 +47,12 @@ std::vector<IBacterium*> initialiseBiofilm(double linking1, double linking2,
     std::srand(std::time(0));
 
     // Define wall constraints scaled by the diameter of PA Bacteria
-    double xMin = -30; 
-    double xMax = 30;
-    double yMax = 30;
-    double yMin=30;
+    double xMin = -10; 
+    double xMax = 10;
+    double yMax = 10;
+    double yMin=10;
     double normDistance = 4.5; // Minimum spacing
-    double maxRadius = 30; // Max spread distance from center
+    double maxRadius = 10; // Max spread distance from center
     int maxAttempts = 300; // Limit placement retries
 
     std::vector<std::pair<double, double>> positions; // Track placed positions
@@ -187,10 +187,10 @@ std::vector<IBacterium*> initialiseBiofilmFromFile(double linking1, double linki
         std::istringstream iss(line);
         std::string cell_type;
         int cell_id;
-        double length, radius, non_dimzeta, pos_x, pos_y, pos_z, ori_x, ori_y, ori_z;
+        double length, radius, Lambda, pos_x, pos_y, pos_z, ori_x, ori_y, ori_z;
         std::string lower_link_str, upper_link_str;
 
-        if (!(iss >> cell_type >> cell_id >> length >> radius >> non_dimzeta >> pos_x >> pos_y >> pos_z >> ori_x >> ori_y >> ori_z >> lower_link_str >> upper_link_str))
+        if (!(iss >> cell_type >> cell_id >> length >> radius >> Lambda >> pos_x >> pos_y >> pos_z >> ori_x >> ori_y >> ori_z >> lower_link_str >> upper_link_str))
             continue;
 
         IBacterium* bacterium = nullptr;
@@ -208,7 +208,7 @@ std::vector<IBacterium*> initialiseBiofilmFromFile(double linking1, double linki
 
         rod = new RodShapedBacterium(pos_x, pos_y, pos_z, angle, constants::pi * 0.5,
                                      RodShapedBacterium::mAvgGrwthRate, length,
-                                     linkingType, radius, non_dimzeta);
+                                     linkingType, radius, Lambda);
         rod->mId = cell_id;
         bacterium = rod;
 
@@ -329,11 +329,11 @@ int main(int argc, char const *argv[])
 
   sim_out_dir += "/" + run_dir + "/";
   ///////------------------------------
-  int numTypeA = 1;      // Number of ca
-  int numTypeB = 1;      // Number of pa
+  int numTypeA = 0;      // Number of TypeA (lambda = 1)
+  int numTypeB = 1;      // Number of TypeB (lambda != 1)
   ////----------------------------------
   double centerX = 0.0;   // Shared center X for mixed distribution
-  double centerY = 75.0/1;   // Shared center Y for mixed distribution
+  double centerY = 75.0;   // Shared center Y for mixed distribution
   
 
 // well-mixed initial conditions

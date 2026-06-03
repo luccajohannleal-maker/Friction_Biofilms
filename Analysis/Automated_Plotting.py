@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
-#COUNTS - python Automated_Plotting.py count --data_dir C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\CA_PA\repeat0
-#SNAPSHOTS - python Automated_Plotting.py snapshots --parent_dir C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\CA_PA
+#COUNTS - python Automated_Plotting.py count --data_dir C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\simple_FreeGrowth_double\repeat8
+#SNAPSHOTS - python Automated_Plotting.py snapshots --parent_dir C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\simple_FreeGrowth_double\ 
+# AVERAGE COUNTS - python Automated_Plotting.py avg_counts --parent_dir C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\simple_FreeGrowth_double\   
+#rg - python Automated_Plotting.py rg --data_dir C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\double_FreeGrowth\GR5\repeat1\
+
+#photo (snapshot) - python Automated_Plotting.py single --file_path C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\simple_FreeGrowth_double\repeat8\biofilm_100.dat
 
 import os
 import re
@@ -27,10 +31,10 @@ def plot_counts_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DI
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
 
     time_steps = []
-    zeta1_counts = []
-    zetanot1_counts = []
+    Lambda1_counts = []
+    Lambdanot1_counts = []
 
-    is_double= 'double' in data_dir  # check if path indicates 2 different zeta values
+    is_double= 'double' in data_dir  # check if path indicates 2 different Lambda values
 
     plt.figure(figsize=(5, 3.5))
     for file_path in files:
@@ -39,24 +43,24 @@ def plot_counts_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DI
             continue
         time_step = int(match.group(1))
         df = pd.read_csv(file_path, sep="\t")
-        zetas = df["non_dimzeta"].unique()
+        Lambdas = df["Lambda"].unique()
 
         time_steps.append(time_step * 0.1)
 
-        for zeta in zetas:
-            if zeta == 1.0:
-                zeta1_count = df[df["non_dimzeta"] == 1.0].shape[0]
-                zeta1_counts.append(zeta1_count)
+        for Lambda in Lambdas:
+            if Lambda == 1.0:
+                Lambda1_count = df[df["Lambda"] == 1.0].shape[0]
+                Lambda1_counts.append(Lambda1_count)
             else:
-                zetanot1_count = df[df["non_dimzeta"] != 1.0].shape[0]
-                zetanot1_counts.append(zetanot1_count)
+                Lambdanot1_count = df[df["Lambda"] != 1.0].shape[0]
+                Lambdanot1_counts.append(Lambdanot1_count)
 
-    for zeta in zetas:
-        if zeta == 1.0 and len(zeta1_counts) == len(time_steps):
-            plt.plot(time_steps, zeta1_counts, 'o', color='cyan', label="Zeta = 1")
+    for Lambda in Lambdas:
+        if Lambda == 1.0 and len(Lambda1_counts) == len(time_steps):
+            plt.plot(time_steps, Lambda1_counts, 'o', color='cyan', label="Lambda = 1")
 
-        if zeta != 1.0 and len(zetanot1_counts) == len(time_steps):
-            plt.plot(time_steps, zetanot1_counts, 'o', color='#9e003a', label="Zeta != 1")
+        if Lambda != 1.0 and len(Lambdanot1_counts) == len(time_steps):
+            plt.plot(time_steps, Lambdanot1_counts, 'o', color='#9e003a', label="Lambda != 1")
             
             
     plt.xlabel("Time (h)")
@@ -78,8 +82,8 @@ def plot_counts_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DI
 
 def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
-    all_zeta1 = {}
-    all_zetanot1 = {}
+    all_Lambda1 = {}
+    all_Lambdanot1 = {}
     all_times = set()
 
     is_double = 'double' in parent_dir  # check if path indicates mutant mode
@@ -96,47 +100,43 @@ def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
             time_h = time_step * 0.1
             df = pd.read_csv(file_path, sep="\t")
 
-            zeta1 = df[df["non_dimzeta"] == 1.0].shape[0]
-            all_zeta1.setdefault(time_h, []).append(zeta1)
+            Lambda1 = df[df["Lambda"] == 1.0].shape[0]
+            all_Lambda1.setdefault(time_h, []).append(Lambda1)
 
             if is_double:
                 cells = ut.getCells(file_path)
-                zetanot1 = 0
+                Lambdanot1 = 0
                 for cell in cells:
-                    if cell.non_dimzeta != 1.0:
-                        zetanot1 += 1
-                all_zetanot1.setdefault(time_h, []).append(zetanot1)
+                    if cell.Lambda != 1.0:
+                        Lambdanot1 += 1
+                all_Lambdanot1.setdefault(time_h, []).append(Lambdanot1)
             all_times.add(time_h)
-        print(all_zeta1,"A")
-        print("")
-        print(all_zetanot1,"B")
-        print("")
 
     sorted_times = sorted(all_times)
-    avg_zeta1, sem_zeta1 = [], []
-    avg_zetanot1, sem_zetanot1 = [], []
+    avg_Lambda1, sem_Lambda1 = [], []
+    avg_Lambdanot1, sem_Lambdanot1 = [], []
 
     for t in sorted_times:
-        zeta1_vals = all_zeta1.get(t, [])
-        while len(zeta1_vals) < len(repeat_dirs):
-            zeta1_vals.append(0)
-        avg_zeta1.append(np.mean(zeta1_vals))
-        sem_zeta1.append(np.std(zeta1_vals, ddof=1) / np.sqrt(len(zeta1_vals)))
+        Lambda1_vals = all_Lambda1.get(t, [])
+        while len(Lambda1_vals) < len(repeat_dirs):
+            Lambda1_vals.append(0)
+        avg_Lambda1.append(np.mean(Lambda1_vals))
+        sem_Lambda1.append(np.std(Lambda1_vals, ddof=1) / np.sqrt(len(Lambda1_vals)))
 
         if is_double:
-            zetanot1_vals = all_zetanot1.get(t, [])
-            while len(zetanot1_vals) < len(repeat_dirs):
-                zetanot1_vals.append(0)
-            avg_zetanot1.append(np.mean(zetanot1_vals))
-            sem_zetanot1.append(np.std(zetanot1_vals, ddof=1) / np.sqrt(len(zetanot1_vals)))
+            Lambdanot1_vals = all_Lambdanot1.get(t, [])
+            while len(Lambdanot1_vals) < len(repeat_dirs):
+                Lambdanot1_vals.append(0)
+            avg_Lambdanot1.append(np.mean(Lambdanot1_vals))
+            sem_Lambdanot1.append(np.std(Lambdanot1_vals, ddof=1) / np.sqrt(len(Lambdanot1_vals)))
 
     if is_double:
         plt.figure(figsize=(5.5, 4))
-        plt.errorbar(sorted_times, avg_zeta1, yerr=sem_zeta1, fmt='o', color='cyan', label="Zeta = 1")
-        plt.errorbar(sorted_times, avg_zetanot1, yerr=sem_zetanot1, fmt='o', color='#9e003a', label="Zeta != 1")
+        plt.errorbar(sorted_times, avg_Lambda1, yerr=sem_Lambda1, fmt='o', color='cyan', label="Lambda = 1")
+        plt.errorbar(sorted_times, avg_Lambdanot1, yerr=sem_Lambdanot1, fmt='o', color='#9e003a', label="Lambda != 1")
     else:
         plt.figure(figsize=(5.5, 4))
-        plt.errorbar(sorted_times, avg_zeta1, yerr=sem_zeta1, fmt='o', color='cyan', label="Zeta = 1")
+        plt.errorbar(sorted_times, avg_Lambda1, yerr=sem_Lambda1, fmt='o', color='cyan', label="Lambda = 1")
 
     plt.xlabel("Time (h)")
     plt.ylabel("Average Cell/Segment Count")
@@ -158,43 +158,6 @@ def plot_cells_grid(parent_dir, output_path=None, num_snapshots=7, output_dir=DE
     fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(15, 3 * num_repeats),
                              constrained_layout=True, facecolor='w')
 
-    def plotCells(ax, file):
-        dat = pd.read_csv(file, sep='\t')
-        cells = ut.getCells(file)
-        x_center,y_center = 0, 0
-
-        maxx, minx = dat['pos_x'].max() + 5 - x_center, dat['pos_x'].min() - 5 - x_center
-        maxy, miny = dat['pos_y'].max() + 5 - y_center, dat['pos_y'].min() - 5 - y_center
-        X, Y = maxx - minx, maxy - miny
-        X_c, Y_c = 0.5 * (maxx + minx), 0.5 * (maxy + miny)
-        if X >= Y:
-            Y = X
-            miny, maxy = Y_c - 0.5 * Y, Y_c + 0.5 * Y
-        else:
-            X = Y
-            minx, maxx = X_c - 0.5 * X, X_c + 0.5 * X
-
-        print(cells[0].pos_x, cells[0].pos_y)
-        cells = dfunc.centerCells(cells)
-        print(cells[0].pos_x, cells[0].pos_y)
-
-        fcp.addAllCellsToPlot(cells, ax, ax_rng=maxx - minx, show_id=False, ec='w')
-
-
-        #Plots walls
-        scale = 1
-        wall_color = 'k'
-        ax.plot([minx/scale, maxx/scale], [miny/scale, miny/scale], color=wall_color, alpha=0.6)
-        ax.plot([minx/scale, maxx/scale], [maxy/scale, maxy/scale], color=wall_color, alpha=0.6)
-        ax.plot([minx/scale, minx/scale], [miny/scale, maxy/scale], color=wall_color, alpha=0.6)
-        ax.plot([maxx/scale, maxx/scale], [miny/scale, maxy/scale], color=wall_color, alpha=0.6)
-
-
-        ax.set_xlim([-80, 80])
-        ax.set_ylim([-5, 160])
-        ax.axis('scaled')
-        ax.axis('off')
-
     for r, repeat_dir in enumerate(repeat_dirs):
         file_pattern = os.path.join(repeat_dir, "biofilm_*.dat")
         files = sorted(glob.glob(file_pattern))
@@ -215,7 +178,7 @@ def plot_cells_grid(parent_dir, output_path=None, num_snapshots=7, output_dir=DE
             # Get corresponding files
             selected_files = [files[i] for i in selected_indices]
         for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
-            plotCells(ax, file)
+            dfunc.plotCells(ax, file)
             match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
             if match:
                 frame_number = int(match.group(1))
@@ -241,10 +204,10 @@ def plot_Rg_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
 
     time_steps = []
     Rg_tot = []
-    Rg_zeta1 = []
-    Rg_zetanot1 = []
+    Rg_Lambda1 = []
+    Rg_Lambdanot1 = []
 
-    is_double= 'double' in data_dir  # check if path indicates 2 different zeta values
+    is_double= 'double' in data_dir  # check if path indicates 2 different Lambda values
 
 
     plt.figure(figsize=(5, 3.5))
@@ -255,27 +218,27 @@ def plot_Rg_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
 
         time_step = int(match.group(1))
         cells = ut.getCells(file_path)
-        zetas = set(cell.non_dimzeta for cell in cells)
+        Lambdas = set(cell.Lambda for cell in cells)
 
         Rg_tot.append(dfunc.radiusGyration(cells))
         time_steps.append(time_step * 0.1)
 
-        if len(zetas) != 1: #If only one zeta, only Rg_tot is required, so skip the rest
-            for zeta in zetas:
-                if zeta == 1.0:
-                    Rg_zeta1.append(dfunc.RgZeta(cells, zeta))
+        if len(Lambdas) != 1: #If only one Lambda, only Rg_tot is required, so skip the rest
+            for Lambda in Lambdas:
+                if Lambda == 1.0:
+                    Rg_Lambda1.append(dfunc.RgLambda(cells, Lambda))
                 else:
-                    Rg_zetanot1.append(dfunc.RgZeta(cells, zeta)) 
+                    Rg_Lambdanot1.append(dfunc.RgLambda(cells, Lambda)) 
     
     if len(Rg_tot) == len(time_steps):
         plt.plot(time_steps, Rg_tot, 'o', color='black', label="Total Rg")
 
     if is_double:
-        if len(Rg_zetanot1) == len(time_steps):
-            plt.plot(time_steps, Rg_zetanot1, 'o', color='#9e003a', label="Zeta != 1")    
+        if len(Rg_Lambdanot1) == len(time_steps):
+            plt.plot(time_steps, Rg_Lambdanot1, 'o', color='#9e003a', label="Lambda != 1")    
 
-        if len(Rg_zeta1) == len(time_steps):
-            plt.plot(time_steps, Rg_zeta1, 'o', color='cyan', label="Zeta = 1")
+        if len(Rg_Lambda1) == len(time_steps):
+            plt.plot(time_steps, Rg_Lambda1, 'o', color='cyan', label="Lambda = 1")
             
     plt.xlabel("Time (h)")
     plt.ylabel("Rg (microm)")
@@ -291,6 +254,23 @@ def plot_Rg_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved Rg plot to: {save_path}")
+    plt.show()
+
+def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR):
+    fig, axes = plt.subplots(1, 1, figsize=(15, 3),
+                             constrained_layout=True, facecolor='w')
+    
+    dfunc.plotCells(axes, file_path)
+
+    plt.tight_layout()
+    
+
+    parts = os.path.normpath(file_path).split(os.sep)
+    tag = "_".join(parts[-2:])
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"avg_counts_{tag}.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved snapshot grid to: {save_path}")
     plt.show()
 
 
@@ -318,6 +298,10 @@ def main():
     rg_parser.add_argument("--save_path", required=False)
     rg_parser.add_argument("--output_dir", required=False)
 
+    single_parser = subparsers.add_parser("single", help="Plot single snapshot")
+    single_parser.add_argument("--file_path", required=True)
+    single_parser.add_argument("--output_dir", required=False)
+
     all_parser = subparsers.add_parser("all", help="Plot all: counts, growth, snapshots, averages")
     all_parser.add_argument("--data_dir", required=True)
     all_parser.add_argument("--parent_dir", required=True)
@@ -335,6 +319,9 @@ def main():
         plot_average_counts_over_repeats(args.parent_dir, output_dir)
     elif args.command == "rg":
         plot_Rg_over_time(args.data_dir, args.save_path, output_dir)
+    elif args.command == "single":
+        plot_single_snapshot(args.file_path, output_dir)
+
 
     elif args.command == "all":
         plot_average_counts_over_repeats(args.parent_dir, output_dir)

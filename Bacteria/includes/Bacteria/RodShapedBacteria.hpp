@@ -104,7 +104,7 @@ public:
   /*---------------------- Set cell hyperparmeters ---------------------------*/
 
   static double mAvgGrwthRate;      //!< average growth rate for all cells
-  double non_dimZeta;        //!< NON-DIMENSIONALISED drag coefficient 
+  double Lambda;        //!< NON-DIMENSIONALISED drag coefficient 
   double mGrwthRtePreFac;           //!< cellular growth rate prefactor
   static double mAvgDivLen;         //!< average division length
   static double mRodModE;           //!< proportional to Young's modulus
@@ -158,8 +158,8 @@ public:
   }
   virtual void setVel() override
   {
-    //multiplied by non_dimZeta to consider different drags
-    mVel=mForce*non_dimZeta/mLength;
+    //multiplied by Lambda to consider different drags
+    mVel=mForce/(Lambda*mLength);
   }
 
   // Return the lab frame angvel
@@ -174,8 +174,8 @@ public:
 #ifndef ANISOTROPIC
     // const double effective_length_3{ mRadius*mRadius*( mRadius + 0.75*mLength ) };
     // mAngVel=(4.0/3.0)*mTorque/effective_length_3;
-    //multiplied by non_dimZeta to consider different drags
-     mAngVel = mTorque* non_dimZeta * 12 / (mLength*mLength*mLength);
+    //multiplied by Lambda to consider different drags
+     mAngVel = mTorque*12/(Lambda*mLength*mLength*mLength);
 #else
     std::cout << "exit from set angvel rod shaped" << '\n';
     exit(1);
@@ -212,7 +212,7 @@ public:
     double alpha=constants::pi*0.5,
     double grwthPreFac=constants::nondim_rodGrwthRtePreFac,
     double init_length=constants::nondim_init_length, double linking_prob=0.5,double radius=1,
-    double nondim_zeta = 1
+    double Lambda = 1
   );
   RodShapedBacterium (
     const Vec3 &rcm,
@@ -220,7 +220,7 @@ public:
     double alpha=constants::pi*0.5,
     double grwthPreFac=constants::nondim_rodGrwthRtePreFac,
     double init_length=constants::nondim_init_length,double linking_prob=0.5,double radius=1,
-    double nondim_zeta = 1
+    double Lambda = 1
   );
   //double mLinkingProb;
   /*--------------------- --------------------------*/
@@ -343,7 +343,7 @@ public:
 #ifdef CHAINING
     out << getMyType()       << "\t";
     out << mId               << "\t";
-    out << non_dimZeta       << "\t";
+    out << Lambda            << "\t";
     out << mLength           << "\t";
     out << mRadius           << "\t";
     out << mPos              << "\t";
@@ -355,7 +355,7 @@ public:
 #else
     out << getMyType()       << "\t";
     out << mId               << "\t";
-    out << non_dimZeta       << "\t";
+    out << Lambda            << "\t";
     out << mLength           << "\t";
     out << mRadius           << "\t";
     out << mPos              << "\t";

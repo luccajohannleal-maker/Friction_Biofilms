@@ -1,7 +1,12 @@
-# Candida Project
+# Friction biofilms
 
-A C++ simulation framework for modeling spatial organisation of Candida (yeast) and Pseudomonas(bacteria) in alveoili-like confined structures.
-https://www.biorxiv.org/content/10.1101/2025.03.22.644766v1
+A C++ simulation framework for modeling the impact of friction in bacterial colonies/biofilms.
+Project done by Lucca Johann Leal for a MSc in Theoretical Physics dissertation for the University of Edinburgh (2025-2026)
+
+This code is built upon the framework designed by Rory Claydon (https://github.com/roryclaydon1994/BiofilmDES?tab=readme-ov-file#references) and Laila Saliekh (https://github.com/lailasaliekh/Candida-project).
+
+
+
 
 ## Table of Contents
 
