@@ -1,5 +1,5 @@
 Tests/CMakeFiles/TestPolyGrid.dir/source/test_grid_poly.cpp.o: \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Tests/source/test_grid_poly.cpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Tests/source/test_grid_poly.cpp \
  /usr/include/stdc-predef.h /usr/include/c++/13/iostream \
  /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
@@ -247,21 +247,21 @@ Tests/CMakeFiles/TestPolyGrid.dir/source/test_grid_poly.cpp.o: \
  /usr/include/c++/13/backward/auto_ptr.h \
  /usr/include/c++/13/bits/ranges_uninitialized.h \
  /usr/include/c++/13/pstl/glue_memory_defs.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/constants.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/constants.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
  /usr/include/c++/13/unordered_map \
  /usr/include/c++/13/bits/unordered_map.h \
  /usr/include/c++/13/bits/hashtable.h \
  /usr/include/c++/13/bits/hashtable_policy.h \
  /usr/include/c++/13/bits/node_handle.h \
  /usr/include/c++/13/bits/erase_if.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/Geometry.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/SphericalBacteria.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Grid/includes/Grid/VerletGrid.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/Geometry.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/SphericalBacteria.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Grid/includes/Grid/VerletGrid.hpp \
  /usr/include/c++/13/algorithm /usr/include/c++/13/bits/ranges_algo.h \
  /usr/include/c++/13/pstl/glue_algorithm_defs.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/utilities.hpp
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/utilities.hpp

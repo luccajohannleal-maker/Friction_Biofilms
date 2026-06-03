@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Main/main.cpp" "Main/CMakeFiles/main.out.dir/main.cpp.o" "gcc" "Main/CMakeFiles/main.out.dir/main.cpp.o.d"
+  "/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Main/main.cpp" "Main/CMakeFiles/main.out.dir/main.cpp.o" "gcc" "Main/CMakeFiles/main.out.dir/main.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

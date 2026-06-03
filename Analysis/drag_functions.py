@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import fastCellPlotting as fcp
 import utilities as ut
+import re
+import glob
+import os
+
+from scipy.optimize import curve_fit
 
 
 def plotCells(ax, file):
@@ -120,9 +125,102 @@ def find_Lambda_cells(cells, Lambda=1.0):
         Returns:
             list of cells with given Lambda
     """
-    Lambda_cells = []
-    for cell in cells:
-        if cell.Lambda == Lambda:
-            Lambda_cells.append(cell)
-    return Lambda_cells
+
+    if type(cells) == pd.DataFrame:
+        filtered_Lambda_cells = cells[cells["Lambda"] == Lambda]
+    
+    elif type(cells) == list:
+        filtered_Lambda_cells = [cell for cell in cells if cell.Lambda == Lambda]
+        
+    return filtered_Lambda_cells
+
+def find_Lambdas(cells):
+    """
+        Parameters:
+            cells: list of ChainingRodShapedBacterium
+                cells to be analysed or a DataFrame containing cell data
+
+        Returns:
+            list of unique Lambda values in the cell population
+    """
+
+    if type(cells) == pd.DataFrame:
+        Lambdas = cells["Lambda"].unique()
+        return np.array(Lambdas)
+    
+
+    if type(cells) == list:
+        Lambdas = set()
+        for cell in cells:
+            Lambdas.add(cell.Lambda)
+        return np.array(list(Lambdas))
+
+def colour_Lambda(Lambda):
+    """
+        Parameters:
+            Lambda: float
+                cell drag coefficient/ base drag coefficient
+
+        Returns:
+            colour for plotting cell with given Lambda
+
+            If Lambda is 1.0, return light blue. 
+            Otherwise, return a shade of red based on the Lambda value. 
+            Darker red for higher Lambda, lighter red for lower Lambda.
+
+    """
+    if Lambda == 1.0:
+        return "#00ffff"
+    elif Lambda < 1.0:
+        return (255*Lambda/255, 0, 0, 1)
+    elif Lambda > 1.0:
+        return (255*(Lambda - 1)/255, 0, 0, 1)
+
+def counts(data_dir):
+    file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+    files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
+
+    time_steps = []
+    Lambda1_counts = []
+    Lambdanot1_counts = []
+
+    for file_path in files:
+        match = re.search(r'(\d+)', os.path.basename(file_path))
+        if not match:
+            continue
+        time_step = int(match.group(1))
+        df = pd.read_csv(file_path, sep="\t")
+        Lambdas = find_Lambdas(df)
+
+        time_steps.append(time_step * 0.1)
+
+        for Lambda in Lambdas:
+            if Lambda == 1.0:
+                Lambda1_count = find_Lambda_cells(df, 1.0).shape[0]
+                Lambda1_counts.append(Lambda1_count)
+            else:
+                Lambdanot1_count =find_Lambda_cells(df, Lambda).shape[0]
+                Lambdanot1_counts.append(Lambdanot1_count)
+
+    return time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas
+
+def estimate_growth_rate(counts, time_step=0.1):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            gamma parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    def exponential_growth(t, gamma):
+        return np.exp(gamma * t)
+    
+    t = np.arange(0, len(counts) * time_step, time_step)
+    popt, pcov= curve_fit(exponential_growth, t, counts)
+
+    return popt[0],np.sqrt(np.diag(pcov))[0]
+
 

@@ -1,5 +1,5 @@
 Bacteria/CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.o: \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/source/SphericalBacteria.cpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/SphericalBacteria.cpp \
  /usr/include/stdc-predef.h /usr/include/c++/13/iostream \
  /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
@@ -238,7 +238,7 @@ Bacteria/CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.o: \
  /usr/include/c++/13/bits/ranges_uninitialized.h \
  /usr/include/c++/13/bits/ranges_algobase.h \
  /usr/include/c++/13/pstl/glue_memory_defs.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/SphericalBacteria.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/SphericalBacteria.hpp \
  /usr/include/c++/13/array /usr/include/c++/13/unordered_map \
  /usr/include/c++/13/bits/unordered_map.h \
  /usr/include/c++/13/bits/hashtable.h \
@@ -246,10 +246,10 @@ Bacteria/CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.o: \
  /usr/include/c++/13/bits/enable_special_members.h \
  /usr/include/c++/13/bits/node_handle.h \
  /usr/include/c++/13/bits/erase_if.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/constants.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/IO/includes/IO/IO.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/constants.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/IO/includes/IO/IO.hpp \
  /usr/include/c++/13/fstream \
  /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
@@ -259,8 +259,8 @@ Bacteria/CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.o: \
  /usr/include/c++/13/bits/stl_heap.h \
  /usr/include/c++/13/bits/ranges_algo.h \
  /usr/include/c++/13/pstl/glue_algorithm_defs.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/Geometry.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/includes/outputPaths.hpp
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/Geometry.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/includes/outputPaths.hpp

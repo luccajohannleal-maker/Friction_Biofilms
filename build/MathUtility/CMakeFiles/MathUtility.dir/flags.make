@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Grid/includes/Grid -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility
+CXX_INCLUDES = -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Grid/includes/Grid -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility
 
 CXX_FLAGS = -D CHAINING -D RANDOM_SEED -fopenmp  -g -std=gnu++20
 

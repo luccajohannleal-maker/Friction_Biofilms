@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility
+# Install script for directory: /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

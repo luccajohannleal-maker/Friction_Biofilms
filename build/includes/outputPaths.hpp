@@ -1,1 +1,1 @@
-#define SIM_DIR "/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/../GeneratedOutput/SimOutput/"
+#define SIM_DIR "/mnt/c/Users/lucca/Desktop/Friction_Biofilms/../GeneratedOutput/SimOutput/"

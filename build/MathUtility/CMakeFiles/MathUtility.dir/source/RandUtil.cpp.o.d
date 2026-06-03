@@ -1,7 +1,7 @@
 MathUtility/CMakeFiles/MathUtility.dir/source/RandUtil.cpp.o: \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/source/RandUtil.cpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/source/RandUtil.cpp \
  /usr/include/stdc-predef.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/constants.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/constants.hpp \
  /usr/include/c++/13/cmath /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
@@ -92,7 +92,7 @@ MathUtility/CMakeFiles/MathUtility.dir/source/RandUtil.cpp.o: \
  /usr/include/c++/13/tr1/poly_hermite.tcc \
  /usr/include/c++/13/tr1/poly_laguerre.tcc \
  /usr/include/c++/13/tr1/riemann_zeta.tcc \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/RandUtil.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/RandUtil.hpp \
  /usr/include/c++/13/random /usr/include/c++/13/cstdlib \
  /usr/include/c++/13/string /usr/include/c++/13/bits/stringfwd.h \
  /usr/include/c++/13/bits/memoryfwd.h \

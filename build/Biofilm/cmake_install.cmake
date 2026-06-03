@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Biofilm
+# Install script for directory: /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Biofilm
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

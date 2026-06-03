@@ -1,5 +1,5 @@
 Forces/CMakeFiles/Forces.dir/source/forces.cpp.o: \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Forces/source/forces.cpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Forces/source/forces.cpp \
  /usr/include/stdc-predef.h /usr/include/c++/13/iostream \
  /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
@@ -255,27 +255,27 @@ Forces/CMakeFiles/Forces.dir/source/forces.cpp.o: \
  /usr/include/c++/13/bits/enable_special_members.h \
  /usr/include/c++/13/bits/node_handle.h \
  /usr/include/c++/13/bits/erase_if.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Grid/includes/Grid/VerletGrid.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/constants.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/utilities.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Forces/includes/Forces/forces.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Grid/includes/Grid/VerletGrid.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/constants.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/utilities.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Forces/includes/Forces/forces.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
  /usr/include/c++/13/unordered_map \
  /usr/include/c++/13/bits/unordered_map.h \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/Geometry.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility/RandUtil.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/Geometry.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/RandUtil.hpp \
  /usr/include/c++/13/chrono /usr/include/c++/13/bits/chrono.h \
  /usr/include/c++/13/ratio /usr/include/c++/13/bits/parse_numbers.h \
  /usr/include/c++/13/bits/chrono_io.h /usr/include/c++/13/format \
  /usr/include/c++/13/charconv /usr/include/c++/13/optional \
  /usr/include/c++/13/span /usr/include/c++/13/variant \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/IO/includes/IO/IO.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/includes/outputPaths.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/HyperParams.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes/constants.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/Candida.hpp \
- /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/IO/includes/IO/IO.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/includes/outputPaths.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/HyperParams.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes/constants.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/Candida.hpp \
+ /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp

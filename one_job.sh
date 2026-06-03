@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=FricBiof_MSc1
-#SBATCH --output=/FreeGrow_FrictionBiofilms/log/FricBiof_MSc1%j.txt
-#SBATCH --error=/FreeGrow_FrictionBiofilms/log/FricBiof_MSc1%j.txt
+#SBATCH --job-name=FricBiof_MSc
+#SBATCH --output=./log/FricBiof_MSc%j.txt
+#SBATCH --error=./log/FricBiof_MSc%j.txt
 #SBATCH --partition=long
 #SBATCH --time=168:00:00
 #SBATCH --cpus-per-task=16
@@ -16,9 +16,9 @@ FRIC_COEFF=8
 
 
 # Define directories
-BASE_DIR="/FreeGrow_FrictionBiofilms/build/Main"
+BASE_DIR="./build/Main"
 
-REPEAT_DIR="/data_production/VERTICAL_ORI/lambda${FRIC_COEFF}/repeat${REPEAT_INDEX}/"
+REPEAT_DIR="data_production/Lambda${FRIC_COEFF}/repeat${REPEAT_INDEX}/"
 
 # Create the directory for the repeat
 mkdir -p "$REPEAT_DIR"

@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Biofilm/source/PolyBiofilm.cpp" "Biofilm/CMakeFiles/Biofilm.dir/source/PolyBiofilm.cpp.o" "gcc" "Biofilm/CMakeFiles/Biofilm.dir/source/PolyBiofilm.cpp.o.d"
+  "/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Biofilm/source/PolyBiofilm.cpp" "Biofilm/CMakeFiles/Biofilm.dir/source/PolyBiofilm.cpp.o" "gcc" "Biofilm/CMakeFiles/Biofilm.dir/source/PolyBiofilm.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

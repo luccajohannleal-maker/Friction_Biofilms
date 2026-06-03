@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/includes -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Grid/includes/Grid -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/MathUtility/includes/MathUtility -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Forces/includes/Forces -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Bacteria/includes/Bacteria -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/Biofilm/includes/Biofilm -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/IO/includes/IO -I/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/includes
+CXX_INCLUDES = -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/includes -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Grid/includes/Grid -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Forces/includes/Forces -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/Biofilm/includes/Biofilm -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/IO/includes/IO -I/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/includes
 
 CXX_FLAGS = -D CHAINING -D RANDOM_SEED -fopenmp  -g -std=gnu++20
 

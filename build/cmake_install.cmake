@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms
+# Install script for directory: /mnt/c/Users/lucca/Desktop/Friction_Biofilms
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,47 +44,47 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/includes/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/includes/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/IO/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/IO/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/MathUtility/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/MathUtility/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/Bacteria/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/Grid/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Grid/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/Forces/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Forces/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/Biofilm/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Biofilm/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/Main/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Main/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/Tests/cmake_install.cmake")
+  include("/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Tests/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -95,5 +95,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/mnt/c/Users/lucca/Desktop/FreeGrow_FrictionBiofilms/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
