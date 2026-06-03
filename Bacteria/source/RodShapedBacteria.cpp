@@ -68,11 +68,11 @@ double mRadius    { 0.5*constants::nondim_rodSpheroDiam };
 double RodShapedBacterium::mRodModE   { constants::nondim_rodModE };
 double RodShapedBacterium::mAvgDivLen { constants::nondim_avg_div_L };
 double RodShapedBacterium::mAvgGrwthRate { constants::nondim_rodGrwthRtePreFac };
+double RodShapedBacterium::mLinkingProb { 0.5 };                 //!< Probability daughters link
 
 #if defined(CHAINING)
 double RodShapedBacterium::mKappa { constants::nondim_kappa };   //!< Spring tension
 double RodShapedBacterium::mBendRig { constants::nondim_K_bend };//!< Bending rigidity
-double mLinkingProb { 0.5 };                 //!< Probability daughters link
 double RodShapedBacterium::mForceThresh { 100 };                 //!< Threshold force before breaking
 #endif
 
@@ -89,7 +89,7 @@ RodShapedBacterium::RodShapedBacterium (
   double Lambda
 ) :
  mPos{_x,_y,_z}, mAngles {theta,alpha,0}, mLength {init_length},
- mGrwthRtePreFac {grwthPreFac},mLinkingProb{linking_prob},mRadius{radius},Lambda{Lambda}
+ mGrwthRtePreFac {grwthPreFac},mRadius{radius},Lambda{Lambda}
 {
   mId = counter++;           // increment unique counter
   // Prevent avalanche of divisions

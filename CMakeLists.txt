@@ -23,7 +23,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Change CMAKE_BUILD_TYPE to Debug and turn on the following for development
 # set(DEBUGGING_FLAGS "-Wall -pedantic -g -pg")
 
-set(SIM_DEFS "-D CHAINING -D RANDOM_SEED")
+set(SIM_DEFS "-D RANDOM_SEED")
 string(APPEND SIM_DEFS  " -fopenmp ")
 
 # Combine the SIM_DEFs and your debugging flags

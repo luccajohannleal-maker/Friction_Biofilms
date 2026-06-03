@@ -92,7 +92,9 @@ void removeCellsOutsideTrap(std::vector<IBacterium*> &cells, double trapYLimit) 
   }
 
   // Update links and clean up before deleting cells
+  
   for (auto& cell : cellsToRemove) {
+    #ifdef CHAINING
       // Get links of the current cell
       IBacterium* lowerLink = cell->getLowerLink();
       IBacterium* upperLink = cell->getUpperLink();
@@ -104,6 +106,7 @@ void removeCellsOutsideTrap(std::vector<IBacterium*> &cells, double trapYLimit) 
       if (upperLink) {
           upperLink->setLowerLink(nullptr); // Disconnect upper neighbor's lower link
       }
+    #endif
 
       // Print details of the removed cell for debugging
       std::array<Vec3, 2> poles;
@@ -140,14 +143,17 @@ void removeOverlappingCells(std::vector<IBacterium*> &cells, double sepThreshold
     }
 
     // Ensure chain integrity before removing cells
+    #ifdef CHAINING
     for (auto& cell : cellsToRemove) {
+      
         IBacterium* lowerLink = cell->getLowerLink();
         IBacterium* upperLink = cell->getUpperLink();
 
         if (lowerLink) lowerLink->setUpperLink(nullptr);
         if (upperLink) upperLink->setLowerLink(nullptr);
     }
-
+    #endif
+    
     // Remove selected cells (O(n) deletion instead of O(n²))
     cells.erase(std::remove_if(cells.begin(), cells.end(),
                                [&cellsToRemove](IBacterium* cell) {

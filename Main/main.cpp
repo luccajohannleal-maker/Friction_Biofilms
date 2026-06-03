@@ -38,7 +38,7 @@
 
 
 //---well mixed--
-std::vector<IBacterium*> initialiseBiofilm(double linking1, double linking2, 
+std::vector<IBacterium*> initialiseBiofilm( 
   int numTypeA, int numTypeB, 
   double centerX, double centerY) {  // One shared center
     // Set the initial conditions
@@ -170,7 +170,7 @@ std::vector<IBacterium*> initialiseBiofilm(double linking1, double linking2,
 //--------------------------------------------------------
 //-----reading from a file-----
 //--------------------------------------------------------
-std::vector<IBacterium*> initialiseBiofilmFromFile(double linking1, double linking2, const std::string& filename)
+std::vector<IBacterium*> initialiseBiofilmFromFile(const std::string& filename)
 {
     std::vector<IBacterium*> initial_conditions;
     std::unordered_map<int, IBacterium*> id_to_bacterium;
@@ -299,7 +299,6 @@ int main(int argc, char const *argv[])
   );
 #endif
 
-#if defined(CHAINING)
   std::string run_dir; // Run directory
   if ( argc==7 )
   {
@@ -336,21 +335,16 @@ int main(int argc, char const *argv[])
   
 
 // well-mixed initial conditions
-  std::vector<IBacterium*> bacteria_population = initialiseBiofilm(linking1, linking2, 
-                                                                    numTypeA, numTypeB, 
+  std::vector<IBacterium*> bacteria_population = initialiseBiofilm( numTypeA, numTypeB, 
                                                                     centerX, centerY);
 
   //FROM FILE for longer runs, reading from file
-  std::string dataFilePath = "/storage/datastore-personal/s2507701/Leonado_paper/NewTestCAndida/GeneratedOutput/SimOutput/data_production/VERTICAL_ORI/CAm1_PA1/repeat1/biofilm_00107.dat"; // 
+  //std::string dataFilePath = "/storage/datastore-personal/s2507701/Leonado_paper/NewTestCAndida/GeneratedOutput/SimOutput/data_production/VERTICAL_ORI/CAm1_PA1/repeat1/biofilm_00107.dat"; // 
   
-  // std::vector<IBacterium*> bacteria_population = initialiseBiofilmFromFile(linking1, linking2,dataFilePath);
+  // std::vector<IBacterium*> bacteria_population = initialiseBiofilmFromFile(dataFilePath);
 
   PolyBiofilm pb { bacteria_population };
   pb.runSim();
-#else
-  std::cout << "Please define one of the following MACROS: CHAINING or nothing" << '\n';
-  exit(42);
-#endif // End control input parameters
 
   return 0;
 }

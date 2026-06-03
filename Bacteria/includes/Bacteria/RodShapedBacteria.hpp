@@ -109,13 +109,13 @@ public:
   static double mAvgDivLen;         //!< average division length
   static double mRodModE;           //!< proportional to Young's modulus
   double mRadius;            //!< particle radius
+  static double mLinkingProb;       //!< Probability daughters link
   static uint counter;              //!< counts the total number of bacteria
   uint mId;                         //!< unique id
 
 #if defined(CHAINING)
   static double mKappa;             //!< Spring tension
   static double mBendRig;           //!< Bending rigidity
-  double mLinkingProb;       //!< Probability daughters link
   static double mForceThresh;       //!< Threshold force before breaking
 
   // Pointers to who this cell is connected to
