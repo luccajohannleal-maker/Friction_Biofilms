@@ -18,7 +18,6 @@
 #include "IBacterium.hpp"
 #include "SphericalBacteria.hpp"
 #include "RodShapedBacteria.hpp"
-#include "Candida.hpp"
 #include "VerletGrid.hpp"
 #include "forces.hpp"
 #include "IO.hpp"
@@ -289,8 +288,8 @@ std::vector<IBacterium*> initialiseBiofilmFromFile(double linking1, double linki
 int main(int argc, char const *argv[])
 {
 
-  int num_A; //default number of candida
-  int num_B; //default number of pa
+  int num_A; //default number of bacteria with lambda = 1
+  int num_B; //default number of bacteria with lambda != 1
   double linking1=0;
   double linking2=0; // neither of our bacteria chaing, prob linking = 0 
 #ifdef RANDOM_SEED

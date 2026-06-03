@@ -15,7 +15,6 @@
 #include "IBacterium.hpp"
 #include "SphericalBacteria.hpp"
 #include "RodShapedBacteria.hpp"
-#include "Candida.hpp"
 
 
 void SphericalBacterium::divide(std::vector<IBacterium*>& cell_list)
@@ -186,10 +185,7 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
   Vec3 rcm_2{
     mPos - quarter_full_length * getOrientation()
   };
-  // Adjust growth rate if linking probability is 1
-  double growthRateMultiplier1 = (mLinkingProb == 1.0) ? 0.6 : 1.0; //the condition to change the growth rate for hyphal CA only
-  double growthRateMultiplier2 = (mRadius >= 1.0) ? 0.6 : 1.0; // for any CA type
-  double divlengthRateMultiplier = (mRadius == 2.05983) ? 6 : 1.0; // for hyphal candida which is big
+
   *this = RodShapedBacterium
   {
     rcm_1,
@@ -203,10 +199,10 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
 #endif
 
     gen_rand.getUniformRand(
-      mAvgGrwthRate*0.5*growthRateMultiplier2,
-      mAvgGrwthRate*1.5*growthRateMultiplier2
+      mAvgGrwthRate*0.5,
+      mAvgGrwthRate*1.5
     ),
-    0.5*divlengthRateMultiplier*(mAvgDivLen-2*mRadius),
+    0.5*(mAvgDivLen-2*mRadius),
     mLinkingProb,mRadius, Lambda
   };
 
@@ -223,10 +219,10 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
                               mAngles.y+1e-3*constants::pi),
 #endif
       gen_rand.getUniformRand(
-        mAvgGrwthRate*0.5*growthRateMultiplier2,
-        mAvgGrwthRate*1.5*growthRateMultiplier2
+        mAvgGrwthRate*0.5,
+        mAvgGrwthRate*1.5
       ),
-      0.5*divlengthRateMultiplier*(mAvgDivLen-2*mRadius),
+      0.5*(mAvgDivLen-2*mRadius),
        mLinkingProb, mRadius, Lambda
     }
   );
@@ -259,85 +255,7 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
 #endif
 }
 
-void Candida::divide(std::vector<IBacterium*>& cell_list)
-{
-  #if defined(CHAINING)
-    // Save the mother links for the daughters to inherit
-    IBacterium* mother_upper_link { mUpperEndLinkedTo };
-    IBacterium* mother_lower_link { mLowerEndLinkedTo };
-  #endif
-    // Define specific division logic for Candida
-    double quarter_full_length{
-        0.25 * (mLength + 2 * mRadius)
-    };
 
-    Vec3 rcm_1{
-        mPos + quarter_full_length * getOrientation()
-    };
-    Vec3 rcm_2{
-        mPos - quarter_full_length * getOrientation()
-    };
-
-    *this = Candida{
-        rcm_1,
-        gen_rand.getUniformRand(mAngles.x - 1e-3 * constants::pi,
-                                mAngles.x + 1e-3 * constants::pi),
-#ifndef MOVE_3D
-        0.5 * constants::pi,
-#else
-        gen_rand.getUniformRand(mAngles.y - 1e-3 * constants::pi,
-                                mAngles.y + 1e-3 * constants::pi),
-#endif
-        gen_rand.getUniformRand(
-            mAvgGrwthRate * 0.5,
-            mAvgGrwthRate * 1.5
-        ),
-        0.5 * (mAvgDivLen - 2 * mRadius),
-        mLinkingProb
-    };
-
-    cell_list.push_back(
-        new Candida{
-            rcm_2,
-            gen_rand.getUniformRand(mAngles.x - 1e-3 * constants::pi,
-                                    mAngles.x + 1e-3 * constants::pi),
-#ifndef MOVE_3D
-            0.5 * constants::pi,
-#else
-            gen_rand.getUniformRand(mAngles.y - 1e-3 * constants::pi,
-                                    mAngles.y + 1e-3 * constants::pi),
-#endif
-            gen_rand.getUniformRand(
-                mAvgGrwthRate * 0.5,
-                mAvgGrwthRate * 1.5
-            ),
-            0.5 * (mAvgDivLen - 2 * mRadius),
-            mLinkingProb
-        }
-    );
-
-#if defined(CHAINING)
-    // Ensure no pre-existing links for daughters
-    assert(mLowerEndLinkedTo == nullptr);
-    assert(mUpperEndLinkedTo == nullptr);
-    IBacterium* other_daughter { cell_list.back() };
-    assert(other_daughter->getLowerLink() == nullptr);
-    assert(other_daughter->getUpperLink() == nullptr);
-
-    // Inherit links from the mother
-    mUpperEndLinkedTo = mother_upper_link;
-    other_daughter->setLowerLink(mother_lower_link);
-
-    if (mother_upper_link) mother_upper_link->setLowerLink(this);
-    if (mother_lower_link) mother_lower_link->setUpperLink(other_daughter);
-
-    if (determineLinkedDaughters(mLinkingProb)) {
-        mLowerEndLinkedTo = other_daughter;
-        other_daughter->setUpperLink(this);
-        splitChainIfNecessary(50, cell_list); //*** can be a different number of cells depeneding on the length that we want the candida to reach to!!
-    }
-#endif
-}
 
 
 

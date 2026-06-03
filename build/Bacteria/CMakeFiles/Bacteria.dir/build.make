@@ -97,24 +97,10 @@ Bacteria/CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.s"
 	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/SphericalBacteria.cpp -o CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.s
 
-Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o: Bacteria/CMakeFiles/Bacteria.dir/flags.make
-Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o: /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/Candida.cpp
-Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o: Bacteria/CMakeFiles/Bacteria.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o"
-	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o -MF CMakeFiles/Bacteria.dir/source/Candida.cpp.o.d -o CMakeFiles/Bacteria.dir/source/Candida.cpp.o -c /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/Candida.cpp
-
-Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Bacteria.dir/source/Candida.cpp.i"
-	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/Candida.cpp > CMakeFiles/Bacteria.dir/source/Candida.cpp.i
-
-Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Bacteria.dir/source/Candida.cpp.s"
-	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/Candida.cpp -o CMakeFiles/Bacteria.dir/source/Candida.cpp.s
-
 Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o: Bacteria/CMakeFiles/Bacteria.dir/flags.make
 Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o: /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/Divisions.cpp
 Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o: Bacteria/CMakeFiles/Bacteria.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o"
 	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o -MF CMakeFiles/Bacteria.dir/source/Divisions.cpp.o.d -o CMakeFiles/Bacteria.dir/source/Divisions.cpp.o -c /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/source/Divisions.cpp
 
 Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.i: cmake_force
@@ -129,7 +115,6 @@ Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.s: cmake_force
 Bacteria_OBJECTS = \
 "CMakeFiles/Bacteria.dir/source/RodShapedBacteria.cpp.o" \
 "CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.o" \
-"CMakeFiles/Bacteria.dir/source/Candida.cpp.o" \
 "CMakeFiles/Bacteria.dir/source/Divisions.cpp.o"
 
 # External object files for target Bacteria
@@ -137,11 +122,10 @@ Bacteria_EXTERNAL_OBJECTS =
 
 Bacteria/libBacteria.a: Bacteria/CMakeFiles/Bacteria.dir/source/RodShapedBacteria.cpp.o
 Bacteria/libBacteria.a: Bacteria/CMakeFiles/Bacteria.dir/source/SphericalBacteria.cpp.o
-Bacteria/libBacteria.a: Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o
 Bacteria/libBacteria.a: Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o
 Bacteria/libBacteria.a: Bacteria/CMakeFiles/Bacteria.dir/build.make
 Bacteria/libBacteria.a: Bacteria/CMakeFiles/Bacteria.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libBacteria.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libBacteria.a"
 	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && $(CMAKE_COMMAND) -P CMakeFiles/Bacteria.dir/cmake_clean_target.cmake
 	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build/Bacteria && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Bacteria.dir/link.txt --verbose=$(VERBOSE)
 

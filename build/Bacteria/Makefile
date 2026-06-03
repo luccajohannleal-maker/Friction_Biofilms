@@ -130,30 +130,6 @@ Bacteria/fast:
 	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build && $(MAKE) $(MAKESILENT) -f Bacteria/CMakeFiles/Bacteria.dir/build.make Bacteria/CMakeFiles/Bacteria.dir/build
 .PHONY : Bacteria/fast
 
-source/Candida.o: source/Candida.cpp.o
-.PHONY : source/Candida.o
-
-# target to build an object file
-source/Candida.cpp.o:
-	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build && $(MAKE) $(MAKESILENT) -f Bacteria/CMakeFiles/Bacteria.dir/build.make Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.o
-.PHONY : source/Candida.cpp.o
-
-source/Candida.i: source/Candida.cpp.i
-.PHONY : source/Candida.i
-
-# target to preprocess a source file
-source/Candida.cpp.i:
-	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build && $(MAKE) $(MAKESILENT) -f Bacteria/CMakeFiles/Bacteria.dir/build.make Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.i
-.PHONY : source/Candida.cpp.i
-
-source/Candida.s: source/Candida.cpp.s
-.PHONY : source/Candida.s
-
-# target to generate assembly for a file
-source/Candida.cpp.s:
-	cd /mnt/c/Users/lucca/Desktop/Friction_Biofilms/build && $(MAKE) $(MAKESILENT) -f Bacteria/CMakeFiles/Bacteria.dir/build.make Bacteria/CMakeFiles/Bacteria.dir/source/Candida.cpp.s
-.PHONY : source/Candida.cpp.s
-
 source/Divisions.o: source/Divisions.cpp.o
 .PHONY : source/Divisions.o
 
@@ -235,9 +211,6 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Bacteria"
-	@echo "... source/Candida.o"
-	@echo "... source/Candida.i"
-	@echo "... source/Candida.s"
 	@echo "... source/Divisions.o"
 	@echo "... source/Divisions.i"
 	@echo "... source/Divisions.s"

@@ -260,6 +260,4 @@ Bacteria/CMakeFiles/Bacteria.dir/source/Divisions.cpp.o: \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/SphericalBacteria.hpp \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/IBacterium.hpp \
- /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
- /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/Candida.hpp \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp

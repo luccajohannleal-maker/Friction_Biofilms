@@ -1,6 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/Bacteria.dir/source/Candida.cpp.o"
-  "CMakeFiles/Bacteria.dir/source/Candida.cpp.o.d"
   "CMakeFiles/Bacteria.dir/source/Divisions.cpp.o"
   "CMakeFiles/Bacteria.dir/source/Divisions.cpp.o.d"
   "CMakeFiles/Bacteria.dir/source/RodShapedBacteria.cpp.o"

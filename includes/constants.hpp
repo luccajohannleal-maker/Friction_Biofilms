@@ -61,10 +61,8 @@ namespace constants
 { //-------------------- Paramters that one might need to change if needed-----------------//
   inline constexpr double dt { 1e-7 }; // Time step in hours
   inline constexpr double baseLengthScale{ 1 };   //cell's diameter in microns
-  inline constexpr double candidaRadius{baseLengthScale}; // Candida (second type of agent) cell radius in microns
-
   inline constexpr double baseZeta{ 200 }; // drag coefficient (lower drag coefficient) in Pa h 
-  inline constexpr double candidaZeta{ 200 }; // higher drag coefficient in Pa h
+
 
   // -------------------------- Chaining -------------------------------
 
@@ -141,29 +139,6 @@ namespace constants
     avg_div_radius / baseLengthScale
   };
 
-// ------------------------ Candida = higher drag coefficient -------------------------------
-
-  // Dimensional
-  inline constexpr double candidaGrwthRtePreFac {rodGrwthRtePreFac};       // microns / hour
-  inline constexpr double candidaModE{ baseModE };            // Pa
-  //inline constexpr double candidaRadius{1.18}; // microns
-  inline constexpr double candidaAvgDivLen{ avg_div_L };            // microns
-
-  // Non-dimensional
-  inline constexpr double candidaLambda{
-    candidaZeta / baseZeta
-  };
-  inline constexpr double nondim_candidaGrwthRtePreFac
-  {
-  candidaGrwthRtePreFac * baseTimeScale / baseLengthScale
-  };
-  inline constexpr double nondim_candidaModE{ candidaModE / baseModE };
-  inline constexpr double nondim_candidaRadius{ candidaRadius / baseLengthScale };
-  inline constexpr double nondim_candidaAvgDivLen{ candidaAvgDivLen / baseLengthScale };
-  inline constexpr double nondim_candidaInitLength{
-  0.5 * (nondim_candidaAvgDivLen - (2 * nondim_candidaRadius))
-  };
-
   // ------------------------- Integration Constants ---------------------------
 
   // Biofilm specific constants
@@ -171,7 +146,7 @@ namespace constants
 
   // Grid
   // inline constexpr double box_width { nondim_rodSpheroDiam + nondim_avg_div_L}; //when PA only!!!!
-  inline constexpr double box_width { 2*nondim_candidaRadius+nondim_candidaAvgDivLen }; //when with CA
+  inline constexpr double box_width { 2*nondim_rodSpheroDiam + nondim_avg_div_L }; //when with CA
 
 }
 #endif // End fileguard

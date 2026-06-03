@@ -66,7 +66,6 @@
 #include "VerletGrid.hpp"
 #include "forces.hpp"
 #include "RodShapedBacteria.hpp"
-#include "Candida.hpp"
 #include "constants.hpp"         // definition of constants namespace
 #include "MathUtility.hpp"       // definition of Vec3 class
 #include <unordered_set>
@@ -683,10 +682,10 @@ inline void computeSingleChainInteraction(
   /*   Stiff linking   */
   /*-------------------*/
   const Vec3 lower_rod_base {
-    lower_head - lower_cell_n*constants::nondim_candidaRadius*2
+    lower_head - lower_cell_n*constants::nondim_rodSpheroDiam*2
   };
   const Vec3 upper_rod_base {
-    upper_tail + upper_cell_n*constants::nondim_candidaRadius*2
+    upper_tail + upper_cell_n*constants::nondim_rodSpheroDiam*2
   };
 
   const Vec3 t0 { lower_head - lower_rod_base };
@@ -733,7 +732,7 @@ inline void computeSingleChainInteraction(
  //  /*-------------------*/
  //
   const Vec3 spring_force { // we are letting the chained cells to overlap slightly so that the smaller PA cells don't cross the chains
-    RodShapedBacterium::mKappa * ( mod_l_to_h - constants::nondim_candidaRadius*1.3 ) * ux12 //constants::nondim_candidaRadius*2
+    RodShapedBacterium::mKappa * ( mod_l_to_h - constants::nondim_rodSpheroDiam*1.3 ) * ux12 //constants::nondim_rodSpheroDiam*2
   };
 
   // Both the forces here are conservative, hence forces on 2 is minus total on 1
@@ -782,10 +781,10 @@ void getSpringEnergy(
   /*   Stiff linking   */
   /*-------------------*/
   const Vec3 lower_rod_base {
-    lower_head - lower_cell_n*constants::nondim_candidaRadius*2
+    lower_head - lower_cell_n*constants::nondim_rodSpheroDiam*2
   };
   const Vec3 upper_rod_base {
-    upper_tail + upper_cell_n*constants::nondim_candidaRadius*2
+    upper_tail + upper_cell_n*constants::nondim_rodSpheroDiam*2
   };
 
   const Vec3 t0 { lower_head - lower_rod_base };
@@ -807,7 +806,7 @@ void getSpringEnergy(
   bend_energy+=0.5*K*dot2(calcBiNormal(t1,t2))*ds2_inv;
 
   double en_pr_fac { 0.5*RodShapedBacterium::mKappa };
-  spring_energy=en_pr_fac*dot2( mod_l_to_h -constants::nondim_candidaRadius*1.3 );//previously was ***-> constants::nondim_candidaRadius*2 );
+  spring_energy=en_pr_fac*dot2( mod_l_to_h -constants::nondim_rodSpheroDiam*1.3 );//previously was ***-> constants::nondim_rodSpheroDiam*2 );
 }
 
 inline

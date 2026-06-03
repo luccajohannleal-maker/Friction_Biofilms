@@ -266,8 +266,6 @@ Main/CMakeFiles/main.out.dir/main.cpp.o: \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/Geometry.hpp \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/MathUtility/includes/MathUtility/MathUtility.hpp \
- /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/Candida.hpp \
- /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Bacteria/includes/Bacteria/RodShapedBacteria.hpp \
  /mnt/c/Users/lucca/Desktop/Friction_Biofilms/Grid/includes/Grid/VerletGrid.hpp \
  /usr/include/c++/13/algorithm /usr/include/c++/13/bits/ranges_algo.h \
  /usr/include/c++/13/pstl/glue_algorithm_defs.h \
