@@ -96,7 +96,7 @@ def intialiseElementsFromData(data,class_dict):
         except Exception as e:
             # print(e)
             # print(f"Failed loading class {class_name}, defaulting to base class RodShapedBacterium")
-            cells.append( RodShapedBacterium(**data.iloc[index,1:10].to_dict()) )
+            cells.append( RodShapedBacterium(**data.iloc[index,1:11].to_dict()) )
 
         # Keep track of how many of each type are present in the colony
         if class_name not in species_load_dict:
@@ -105,7 +105,6 @@ def intialiseElementsFromData(data,class_dict):
             species_load_dict[class_name]+=1
 
     try:
-        print("Created chaining hash list")
         RodShapedBacterium.makeHashList(cells)
         # AG43RodShapedBacterium.createSpringHashList(cells)
     except Exception as e:

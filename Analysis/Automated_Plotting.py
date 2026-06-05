@@ -112,35 +112,9 @@ def plot_cells_grid(parent_dir, output_path=None, num_snapshots=5, output_dir=DE
     plt.show()
 
 def plot_Rg_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
-    file_pattern = os.path.join(data_dir, "biofilm_*.dat")
-    files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
-
-    time_steps = []
-    Rg_tot = []
-    Rg_Lambda1 = []
-    Rg_Lambdanot1 = []
-
+    time_steps, Rg_tot, Lambdas, Rg_Lambda1, Rg_Lambdanot1 = dfunc.RgLambda_time(data_dir)
 
     plt.figure(figsize=(5, 3.5))
-    for file_path in files:
-        match = re.search(r'(\d+)', os.path.basename(file_path))
-        if not match:
-            continue
-
-        time_step = int(match.group(1))
-        cells = ut.getCells(file_path)
-        Lambdas = dfunc.find_Lambdas(cells)
-
-        Rg_tot.append(dfunc.radiusGyration(cells))
-        time_steps.append(time_step * 0.1)
-
-        if len(Lambdas) != 1: #If only one Lambda, only Rg_tot is required, so skip the rest
-            for Lambda in Lambdas:
-                if Lambda == 1.0:
-                    Rg_Lambda1.append(dfunc.RgLambda(cells, Lambda))
-                else:
-                    Rg_Lambdanot1.append(dfunc.RgLambda(cells, Lambda)) 
-    
     if len(Rg_tot) == len(time_steps):
         plt.plot(time_steps, Rg_tot, 'o', color='black', label="Total Rg")
 
@@ -188,16 +162,16 @@ def plot_growth_rate(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
     time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
     growth_rate_Lambda1,err_Lambda1 = dfunc.estimate_growth_rate(Lambda1_counts, time_step=0.1)
     growth_rate_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(Lambdanot1_counts, time_step=0.1)
-    print(f"Estimated growth rate for Lambda=1: {growth_rate_Lambda1}+-{err_Lambda1}, Lambda={Lambdas[Lambdas != 1.0][0]}: {growth_rate_Lambdanot1}+-{err_Lambdanot1}")
+    print(f"Estimated doubling time for Lambda=1: {growth_rate_Lambda1}+-{err_Lambda1}, Lambda={Lambdas[Lambdas != 1.0][0]}: {growth_rate_Lambdanot1}+-{err_Lambdanot1}")
 
     plt.figure(figsize=(5, 3.5))
     if len(Lambda1_counts) == len(time_steps):
         plt.plot(time_steps, Lambda1_counts, 'o', color=dfunc.colour_Lambda(1.0), label=" Counts Lambda = 1")
-        plt.plot(time_steps, np.exp(growth_rate_Lambda1 * np.array(time_steps)), '-', color=dfunc.colour_Lambda(1.0), label="Fit Lambda1: N(t)= exp("+str(round(growth_rate_Lambda1, 2)) +"*t)")
+        plt.plot(time_steps, 2**(np.array(time_steps)/growth_rate_Lambda1), '-', color=dfunc.colour_Lambda(1.0), label="Fit Lambda1: $N(t)= 2^{(t/"+str(round(growth_rate_Lambda1, 2)) +")}$")
 
     if len(Lambdanot1_counts) == len(time_steps):
         plt.plot(time_steps, Lambdanot1_counts, 'o', color=dfunc.colour_Lambda(Lambdas[Lambdas != 1.0][0]), label=" Counts Lambda =" + str(Lambdas[Lambdas != 1.0][0]))
-        plt.plot(time_steps, np.exp(growth_rate_Lambdanot1 * np.array(time_steps)), '-', color=dfunc.colour_Lambda(Lambdas[Lambdas != 1.0][0]), label="Fit Lambda=" + str(Lambdas[Lambdas != 1.0][0]) + ": N(t)= exp("+str(round(growth_rate_Lambdanot1, 2)) +"*t)")
+        plt.plot(time_steps, 2**(np.array(time_steps)/growth_rate_Lambdanot1), '-', color=dfunc.colour_Lambda(Lambdas[Lambdas != 1.0][0]), label="Fit Lambda=" + str(Lambdas[Lambdas != 1.0][0]) + ": $N(t)= 2^{(t/"+str(round(growth_rate_Lambdanot1, 2)) +")}$")
 
     plt.xlabel("Time (h)")
     plt.ylabel("Count N(t)")

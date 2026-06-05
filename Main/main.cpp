@@ -148,7 +148,7 @@ std::vector<IBacterium*> initialiseBiofilm(
                     4, // Type B initial length
                     0, // non-chaining, 1 for chaining
                     0.5, //radius of the cell
-                    1.5 // Lambda > 1 for higher drag , for base drag = 1
+                    5 // Lambda > 1 for higher drag , for base drag = 1
                 };
                 initial_conditions.push_back(rod);
                 numTypeB--;
@@ -327,7 +327,7 @@ int main(int argc, char const *argv[])
 
   sim_out_dir += "/" + run_dir + "/";
   ///////------------------------------
-  int numTypeA = 1;      // Number of TypeA (lambda = 1)
+  int numTypeA = 0;      // Number of TypeA (lambda = 1)
   int numTypeB = 1;      // Number of TypeB (lambda != 1)
   ////----------------------------------
   double centerX = 0.0;   // Shared center X for mixed distribution

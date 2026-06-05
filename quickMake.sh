@@ -20,3 +20,5 @@ echo "== Making =="
 make -j $NUM_THREADS
 
 echo "Run with the following command from the build directory: ./Main/main.out test/repeat0/"
+
+echo $NUM_THREADS

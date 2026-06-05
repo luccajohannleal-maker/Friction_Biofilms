@@ -107,6 +107,9 @@ class RodShapedBacterium(object):
         self.colour           = (30/255,130/255,76/255,1) # default element colour
         self.upper_link       = upper_link
         self.lower_link       = lower_link
+        self.pos_x = pos_x
+        self.pos_y= pos_y
+        self.pos_z=pos_z
         try:
             self.neighbours = [ int(id) for id in neighbours.split(',')
                                                if id != '' ]

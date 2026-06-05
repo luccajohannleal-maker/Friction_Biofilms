@@ -318,12 +318,14 @@ void polyInteractParticles(std::vector<IBacterium*> &pars) {
 
     // Use an unordered set to track cells marked for deletion
     std::unordered_set<IBacterium*> cellsToRemove;
-    
-
+  
+    FOR WALLS CHANGE PARALELLISATION TO THIS!!!!!!!--------------------------------------------------------------------------
     #pragma omp parallel for shared(pars, yMin, yMax, wallLayers, trapStartX, trapEndX, trapHeight, cellsToRemove) \
-            schedule(static) default(none)
+            schedule(static) default(none)  
     */
 
+    #pragma omp parallel for shared(pars) \
+            schedule(static) default(none)
 
 
     for (uint ii = 0; ii < pars.size(); ++ii) {
