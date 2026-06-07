@@ -335,6 +335,12 @@ public:
     return mLength;
   }
 
+  virtual Vec3 getStress() const;
+    /**<
+    \brief Find Stress tensor of the cells.
+    @returns 
+  */
+
   virtual ~RodShapedBacterium () {};
 
   // ----------------------------------- IO ------------------------------------
@@ -359,7 +365,8 @@ public:
     out << mLength           << "\t";
     out << mRadius           << "\t";
     out << mPos              << "\t";
-    out << getOrientation()  << "\n";
+    out << getOrientation()  << "\n"; //WHEN STRESS CHANGE TO TAB
+    //out << getStress() << "\n";
 #endif
   }
 };

@@ -17,53 +17,56 @@ import argparse
 
 
 #importing defined modules/functions
-from RodShapedBacteria import RodShapedBacterium
 import utilities as ut
-import fastCellPlotting as fcp
 import drag_functions as dfunc
+import plotting_functions as pfunc
 
 ut.setMPL()
 
 DEFAULT_OUTPUT_DIR = "C:\\Users\\lucca\\Desktop\\GeneratedOutput"
 
-def plot_counts_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
-    time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
-    
+def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
-    for Lambda in Lambdas:
-        if Lambda == 1.0 and len(Lambda1_counts) == len(time_steps):
-            plt.plot(time_steps, Lambda1_counts, 'o', color=dfunc.colour_Lambda(Lambda), label="Lambda = 1")
 
-        if Lambda != 1.0 and len(Lambdanot1_counts) == len(time_steps):
-            plt.plot(time_steps, Lambdanot1_counts, 'o', color=dfunc.colour_Lambda(Lambda), label="Lambda = "+str(Lambda))
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
 
-            
+
+    for data_dir in data_dirs:
+        pfunc.plot_count(data_dir)
+
     plt.xlabel("Time (h)")
     plt.ylabel("Cell/Segment Count")
-    #plt.yscale("log")
+    plt.yscale("log")
     plt.legend()
     plt.tight_layout()
 
 
-    if save_path is None:
-        parts = os.path.normpath(data_dir).split(os.sep)
-        tag = "_".join(parts[-2:])
-        os.makedirs(output_dir, exist_ok=True)
-        save_path = os.path.join(output_dir, f"counts_{tag}.pdf")
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"counts.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved cell count plot to: {save_path}")
     plt.show()
 
-def plot_cells_grid(parent_dir, output_path=None, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
-    repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
-    num_repeats = len(repeat_dirs)
+def plot_cells_grid(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
+    #repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
+    #num_repeats = len(repeat_dirs)
+    if type(data_dirs) == str:
+        num_repeats = 1
+        data_dirs = [data_dirs]
+    
+    else:
+        data_dirs = list(data_dirs)
+        num_repeats = len(data_dirs)
 
     fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(10, 2* num_repeats),
                              constrained_layout=True, facecolor='w')
 
-    for r, repeat_dir in enumerate(repeat_dirs):
-        file_pattern = os.path.join(repeat_dir, "biofilm_*.dat")
+    for r, data_dir in enumerate(data_dirs):
+        file_pattern = os.path.join(data_dir, "biofilm_*.dat")
         files = sorted(glob.glob(file_pattern))
         if len(files) < num_snapshots:
             selected_files = files
@@ -99,43 +102,39 @@ def plot_cells_grid(parent_dir, output_path=None, num_snapshots=5, output_dir=DE
                     ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
             axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
 
-    if output_path is None:
-        parts = os.path.normpath(parent_dir).split(os.sep)
-        tag = "_".join(parts[-2:])
-        os.makedirs(output_dir, exist_ok=True)
-        output_path_pdf = os.path.join(output_dir, f"snapshots_{tag}.pdf")
-        output_path_png = os.path.join(output_dir, f"snapshots_{tag}.png")
+
+    os.makedirs(output_dir, exist_ok=True)
+    output_path_pdf = os.path.join(output_dir, f"snapshots.pdf")
 
     fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
-    fig.savefig(output_path_png, dpi=600, bbox_inches="tight")
     print(f"Saved snapshot grid to: {output_path_pdf}")
     plt.show()
 
-def plot_Rg_over_time(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
-    time_steps, Rg_tot, Lambdas, Rg_Lambda1, Rg_Lambdanot1 = dfunc.RgLambda_time(data_dir)
-
+def plot_Rg_over_time(data_dirs, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
-    if len(Rg_tot) == len(time_steps):
-        plt.plot(time_steps, Rg_tot, 'o', color='black', label="Total Rg")
 
-    if len(Lambdas) != 1:
-        if len(Rg_Lambdanot1) == len(time_steps):
-            plt.plot(time_steps, Rg_Lambdanot1, 'o', color=dfunc.colour_Lambda(Lambdas[Lambdas != 1.0][0]), label="Lambda =" + str(Lambdas[Lambdas != 1.0][0]))    
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
 
-        if len(Rg_Lambda1) == len(time_steps):
-            plt.plot(time_steps, Rg_Lambda1, 'o', color=dfunc.colour_Lambda(1.0), label="Lambda = 1")
+    for data_dir in data_dirs:
+        pfunc.plot_rg(data_dir)
+
+    
+    #if len(Rg_tot) == len(time_steps):
+        #plt.plot(time_steps, Rg_tot, 'o', color='black', label="Total Rg")
+
+    
             
     plt.xlabel("Time (h)")
     plt.ylabel("Rg (microm)")
+    plt.yscale("log")
     plt.legend()
     plt.tight_layout()
 
-
-    if save_path is None:
-        parts = os.path.normpath(data_dir).split(os.sep)
-        tag = "_".join(parts[-2:])
-        os.makedirs(output_dir, exist_ok=True)
-        save_path = os.path.join(output_dir, f"Rg_{tag}.pdf")
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"Rg.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved Rg plot to: {save_path}")
@@ -158,34 +157,47 @@ def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved snapshot grid to: {save_path}")
     plt.show()
 
-def plot_growth_rate(data_dir, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
-    time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
-    growth_rate_Lambda1,err_Lambda1 = dfunc.estimate_growth_rate(Lambda1_counts, time_step=0.1)
-    growth_rate_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(Lambdanot1_counts, time_step=0.1)
-    print(f"Estimated doubling time for Lambda=1: {growth_rate_Lambda1}+-{err_Lambda1}, Lambda={Lambdas[Lambdas != 1.0][0]}: {growth_rate_Lambdanot1}+-{err_Lambdanot1}")
-
+def plot_growth_rate(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
-    if len(Lambda1_counts) == len(time_steps):
-        plt.plot(time_steps, Lambda1_counts, 'o', color=dfunc.colour_Lambda(1.0), label=" Counts Lambda = 1")
-        plt.plot(time_steps, 2**(np.array(time_steps)/growth_rate_Lambda1), '-', color=dfunc.colour_Lambda(1.0), label="Fit Lambda1: $N(t)= 2^{(t/"+str(round(growth_rate_Lambda1, 2)) +")}$")
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
 
-    if len(Lambdanot1_counts) == len(time_steps):
-        plt.plot(time_steps, Lambdanot1_counts, 'o', color=dfunc.colour_Lambda(Lambdas[Lambdas != 1.0][0]), label=" Counts Lambda =" + str(Lambdas[Lambdas != 1.0][0]))
-        plt.plot(time_steps, 2**(np.array(time_steps)/growth_rate_Lambdanot1), '-', color=dfunc.colour_Lambda(Lambdas[Lambdas != 1.0][0]), label="Fit Lambda=" + str(Lambdas[Lambdas != 1.0][0]) + ": $N(t)= 2^{(t/"+str(round(growth_rate_Lambdanot1, 2)) +")}$")
+    for data_dir in data_dirs:
+        pfunc.plot_GR(data_dir)
 
     plt.xlabel("Time (h)")
     plt.ylabel("Count N(t)")
     plt.legend()
     plt.tight_layout()
 
-    if save_path is None:
-        parts = os.path.normpath(data_dir).split(os.sep)
-        tag = "_".join(parts[-2:])
-        os.makedirs(output_dir, exist_ok=True)
-        save_path = os.path.join(output_dir, f"growth_rate_{tag}.pdf")
+    save_path = os.path.join(output_dir, f"growth_rate_GR.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved growth rate plot to: {save_path}")
+    plt.show()
+
+def plot_shape_anisotropy(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    for data_dir in data_dirs:
+        pfunc.plot_shape_anis_time(data_dir)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("Relative shape anisotropy $\kappa$")
+    plt.legend()
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"anisotropy_colony.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved anisotropy plot to: {save_path}")
     plt.show()
 
 
@@ -264,13 +276,11 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
 
     count_parser = subparsers.add_parser("count", help="Plot cell counts over time")
-    count_parser.add_argument("--data_dir", required=True)
-    count_parser.add_argument("--save_path", required=False)
+    count_parser.add_argument("--data_dirs", required=True)
     count_parser.add_argument("--output_dir", required=False)
 
     snap_parser = subparsers.add_parser("snapshots", help="Plot snapshot grid")
-    snap_parser.add_argument("--parent_dir", required=True)
-    snap_parser.add_argument("--output_path", required=False)
+    snap_parser.add_argument("--data_dirs", required=True)
     snap_parser.add_argument("--num_snapshots", type=int, default=5)
     snap_parser.add_argument("--output_dir", required=False)
 
@@ -279,8 +289,7 @@ def main():
     avg_parser.add_argument("--output_dir", required=False)
 
     rg_parser = subparsers.add_parser("rg", help="Plot radius of gyration over time")
-    rg_parser.add_argument("--data_dir", required=True)
-    rg_parser.add_argument("--save_path", required=False)
+    rg_parser.add_argument("--data_dirs", required=True)
     rg_parser.add_argument("--output_dir", required=False)
 
     single_parser = subparsers.add_parser("single", help="Plot single snapshot")
@@ -288,36 +297,25 @@ def main():
     single_parser.add_argument("--output_dir", required=False)
 
     growth_parser = subparsers.add_parser("growth_rate", help="Plot growth rate over time")
-    growth_parser.add_argument("--data_dir", required=True)
-    growth_parser.add_argument("--save_path", required=False)
+    growth_parser.add_argument("--data_dirs", required=True)
     growth_parser.add_argument("--output_dir", required=False)
-
-    all_parser = subparsers.add_parser("all", help="Plot all: counts, growth, snapshots, averages")
-    all_parser.add_argument("--data_dir", required=True)
-    all_parser.add_argument("--parent_dir", required=True)
-    all_parser.add_argument("--num_snapshots", type=int, default=7)
-    all_parser.add_argument("--output_dir", required=False)
 
     args = parser.parse_args()
     output_dir = DEFAULT_OUTPUT_DIR
 
     if args.command == "count":
-        plot_counts_over_time(args.data_dir, args.save_path, output_dir)
+        plot_counts_over_time(args.data_dirs, output_dir)
     elif args.command == "snapshots":
-        plot_cells_grid(args.parent_dir, args.output_path, args.num_snapshots, output_dir)
+        plot_cells_grid(args.data_dirs, args.num_snapshots, output_dir)
     elif args.command == "avg_counts":
         plot_average_counts_over_repeats(args.parent_dir, output_dir)
     elif args.command == "rg":
-        plot_Rg_over_time(args.data_dir, args.save_path, output_dir)
+        plot_Rg_over_time(args.data_dirs, output_dir)
     elif args.command == "single":
         plot_single_snapshot(args.file_path, output_dir)
     elif args.command == "growth_rate":
-        plot_growth_rate(args.data_dir, args.save_path, output_dir)
+        plot_growth_rate(args.data_dirs, output_dir)
 
-
-    elif args.command == "all":
-        plot_average_counts_over_repeats(args.parent_dir, output_dir)
-        plot_cells_grid(args.parent_dir, None, args.num_snapshots, output_dir)  
     else:
         parser.print_help()
 

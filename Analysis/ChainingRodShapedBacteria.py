@@ -69,7 +69,7 @@ class ChainingRodShapedBacterium(RodShapedBacterium):
         self.pos_x = pos_x
         self.pos_y= pos_y
         self.pos_z=pos_z
-        print(f"Initialized Cell ID: {self.cell_id}, Upper Link: {self.upper_link}, Lower Link: {self.lower_link}")
+        #print(f"Initialized Cell ID: {self.cell_id}, Upper Link: {self.upper_link}, Lower Link: {self.lower_link}")
     @staticmethod
     def getLinkVector(cell_1,cell_2,primary_only=True):
         la=cell_1.getUpperLinkAnchors()

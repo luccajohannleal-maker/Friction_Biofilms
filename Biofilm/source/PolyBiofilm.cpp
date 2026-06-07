@@ -44,6 +44,9 @@ void PolyBiofilm::createLogFile()
   headers.push_back("OutputFrequency");
   values.push_back(mOutFreq);
 
+  headers.push_back("timescale");
+  values.push_back(constants::baseTimeScale);
+
   //headers.push_back("RodAspectRatio");
   //values.push_back(mAvgDivLen/(2*RodShapedBacterium::mRadius));
 

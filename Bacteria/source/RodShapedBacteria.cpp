@@ -232,6 +232,13 @@ Vec3 RodShapedBacterium::getOrientation() const
   return n_hat;
 }
 
+Vec3 RodShapedBacterium::getStress() const
+{
+  Vec3 n_hat{getOrientation()};
+  
+
+}
+
 void RodShapedBacterium::getMyEndVecs(Vec3& p, Vec3& q) const
 {
   getEndVecs(*this,p,q);

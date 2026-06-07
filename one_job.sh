@@ -3,11 +3,11 @@
 #SBATCH --output=./log/FricBiof_MSc%j.txt
 #SBATCH --error=./log/FricBiof_MSc%j.txt
 #SBATCH --partition=long
-#SBATCH --time=168:00:00
-#SBATCH --cpus-per-task=16
+#SBATCH --time=48:00:00
+#SBATCH --cpus-per-task=4
 #SBATCH --mem=32GB
 
-export OMP_NUM_THREADS="16"
+export OMP_NUM_THREADS="4"
 ulimit -c unlimited # this is for debugging if needed
 
 # Get the repeat index from the argument

@@ -27,9 +27,9 @@ def Lambda_status_to_color(cell):
     if Lambda == 1.0:
         return "#00ffff"
     elif Lambda < 1.0:
-        return (255*Lambda/255, 0, 0, 1)
+        return (Lambda, 0, 0, 1)
     elif Lambda > 1.0:
-        return (0, 255/(Lambda*255), 0, 1)
+        return (0,(Lambda-1)/(10-1), 0, 1)
 
 
 def chaining_status_to_color(cell):

@@ -87,6 +87,12 @@ def distance_from_origin(cells):
 
     return dist
 
+
+
+
+
+
+
 def max_radius(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
@@ -119,10 +125,9 @@ def Gyration_values(cells):
     Tensor = Gyration_tensor_2D(cells)
 
     Rg=np.sqrt(np.trace(Tensor))
-    eig_vals,eig_vect = np.linalg.eigvals(Tensor)
+    eig_val1,eig_val2 = np.linalg.eigvals(Tensor)
 
-    return Rg,eig_vals
-
+    return Rg,[eig_val1,eig_val2]
 
 def Gyration_tensor_2D(cells):
     Gyr_tensor = np.zeros((2,2))
@@ -133,7 +138,6 @@ def Gyration_tensor_2D(cells):
     Gyr_tensor[0,1]= np.mean(np.dot(x,y))
     Gyr_tensor[1,0]= np.mean(np.dot(x,y))
     return Gyr_tensor
-
 
 def position_cells(cells):
     """
@@ -188,6 +192,42 @@ def RgLambda_time(data_dir):
                     Rg_Lambdanot1.append(Gyration_values(cellsnot1)[0]) 
     
     return time_steps, Rg_tot, Lambdas, Rg_Lambda1, Rg_Lambdanot1
+
+def Gyr_eig_time(data_dir):
+    file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+    files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
+    
+
+    Rg_Lambda1_eig = []
+    Rg_Lambdanot1_eig = []
+    time_steps = []
+    Rg_tot_eig = []
+
+    for file_path in files:
+        match = re.search(r'(\d+)', os.path.basename(file_path))
+        if not match:
+            continue
+
+        time_step = int(match.group(1))
+        cells = ut.getCells(file_path)
+        Lambdas = find_Lambdas(cells)
+
+        Rg_tot_eig.append(Gyration_values(cells)[1])
+        time_steps.append(time_step * 0.1)
+
+        if len(Lambdas) != 1: #If only one Lambda, only Rg_tot is required, so skip the rest
+            for Lambda in Lambdas:
+                if Lambda == 1.0:
+                    cells1 = find_Lambda_cells(cells,1)
+                    Rg_Lambda1_eig.append(Gyration_values(cells1)[1])
+                else:
+                    cellsnot1 = find_Lambda_cells(cells,Lambda)
+                    Rg_Lambdanot1_eig.append(Gyration_values(cellsnot1)[1]) 
+    
+    return time_steps, np.asarray(Rg_tot_eig), Lambdas, np.asarray(Rg_Lambda1_eig), np.asarray(Rg_Lambdanot1_eig)
+
+
+
 
 def find_Lambda_cells(cells, Lambda=1.0):
     """
@@ -246,9 +286,9 @@ def colour_Lambda(Lambda):
     if Lambda == 1.0:
         return "#00ffff"
     elif Lambda < 1.0:
-        return (255*Lambda/255, 0, 0, 1)
+        return (Lambda, 0, 0, 1)
     elif Lambda > 1.0:
-        return (0, 255/(Lambda*255), 0, 1)
+        return (0,(Lambda-1)/(10-1), 0, 1)
 
 def counts(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
@@ -292,114 +332,10 @@ def estimate_growth_rate(counts, time_step=0.1):
     def doubling_growth(t, t_doub):
         return 2**(t/t_doub)
     
-    t = np.arange(0, len(counts) * time_step, time_step)
-    popt, pcov= curve_fit(doubling_growth, t, counts,p0=0.175)
+   
+    t = np.arange(0, (len(counts) - 0.5)* time_step, time_step) #0.5 INCLUDED TO AVOID ANY SMALL ERRORS IN FLOAT POINTS
+    popt, pcov= curve_fit(doubling_growth, t, counts,p0=0.7)
 
     return popt[0],np.sqrt(np.diag(pcov))[0]
 
 
-"""files = ["C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\Free_Growing\\comparison\\repeat0","C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\Free_Growing\\comparison\\repeat1","C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\Free_Growing\\comparison\\repeat2"]
-
-t08,d08 = max_radius(files[0])
-t1,d1 = max_radius(files[1])
-t15,d15 = max_radius(files[2])
-plt.plot(t08, d08, 'o', color=colour_Lambda(0.8), label="Lambda =" + str(0.8))
-plt.plot(t1, d1, 'o', color=colour_Lambda(1), label="Lambda =" + str(1))
-plt.plot(t15, d15, 'o', color=colour_Lambda(1.5), label="Lambda =" + str(1.5))
-plt.ylabel("max distance from origin")
-
-
-time_steps08, Lambda08_counts, Lambdanot08_counts, Lambda08 = counts(files[0]) 
-time_steps1, Lambda1_counts, Lambdanot1_counts, Lambda1 = counts(files[1])
-time_steps15, Lambda15_counts, Lambdanot15_counts, Lambda15 = counts(files[2])
-
-growth_rate_Lambda1,err_Lambda1 = estimate_growth_rate(Lambda1_counts, 0.1)
-growth_rate_Lambda08, err_Lambda08 = estimate_growth_rate(Lambdanot08_counts, 0.1)
-growth_rate_Lambda15, err_Lambda15 = estimate_growth_rate(Lambdanot15_counts, 0.1)
-
-print(f"Estimated growth rate for Lambda=1: {growth_rate_Lambda1}+-{err_Lambda1}")
-print(f"Estimated growth rate for Lambda=0.8: {growth_rate_Lambda08}+-{err_Lambda08}")
-print(f"Estimated growth rate for Lambda=1.5: {growth_rate_Lambda15}+-{err_Lambda15}")
-
-plt.figure(figsize=(5, 3.5))
-plt.plot(time_steps08, Lambdanot08_counts, 'o', color=colour_Lambda(0.8), label=" Counts Lambda =" + str(0.8))
-plt.plot(time_steps08, np.exp(growth_rate_Lambda08 * np.array(time_steps08)), '-', color=colour_Lambda(0.8), label="Fit Lambda=" + str(0.8) + ": N(t)= 2^(t/"+str(round(growth_rate_Lambda08, 2)) +")")
-plt.plot(time_steps1, Lambda1_counts, 'o', color=colour_Lambda(1), label=" Counts Lambda =" + str(1))
-plt.plot(time_steps1, np.exp(growth_rate_Lambda1 * np.array(time_steps1)), '-', color=colour_Lambda(1), label="Fit Lambda=" + str(1) + ": N(t)= 2^(t/"+str(round(growth_rate_Lambda1, 2)) +")")
-plt.plot(time_steps15, Lambdanot15_counts, 'o', color=colour_Lambda(1.5), label=" Counts Lambda =" + str(1.5))
-plt.plot(time_steps15, np.exp(growth_rate_Lambda15 * np.array(time_steps15)), '-', color=colour_Lambda(1.5), label="Fit Lambda=" + str(1.5) + ": N(t)= 2^(t/"+str(round(growth_rate_Lambda15, 2)) +")")
-
-plt.ylabel("Count N(t)")
-plt.yscale("log")
-
-
-time_steps08, Rg_08, Lambdas, Rg_Lambda1, Rg_Lambdanot1=RgLambda_time(files[0])
-time_steps1, Rg_1, Lambdas, Rg_Lambda1, Rg_Lambdanot1=RgLambda_time(files[1])
-time_steps15, Rg_15, Lambdas, Rg_Lambda1, Rg_Lambdanot1=RgLambda_time(files[2])
-
-plt.plot(time_steps08, Rg_08, 'o', color=colour_Lambda(0.8), label="Lambda =" + str(0.8))
-plt.plot(time_steps1, Rg_1, 'o', color=colour_Lambda(1), label="Lambda =" + str(1))
-plt.plot(time_steps15, Rg_15, 'o', color=colour_Lambda(1.5), label="Lambda =" + str(1.5))
-plt.ylabel("Rg")
-
-plt.xlabel("Time (h)")
-plt.legend()
-plt.tight_layout()
-plt.show()
-"""
-
-
-"""files = ["C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\Free_Growing\\Lambda1\\repeat1","C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\Free_Growing\\Lambda5\\repeat0"]
-
-plt.figure(figsize=(5, 3.5))
-t1,d1 = max_radius(files[0])
-t15,d15 = max_radius(files[1])
-plt.plot(t1, d1, 'o', color=colour_Lambda(1), label="Lambda =" + str(1))
-plt.plot(t15, d15, 'o', color=colour_Lambda(5), label="Lambda =" + str(5))
-plt.ylabel("max distance from origin")
-plt.xlabel("Time (h)")
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-
-time_steps1, Lambda1_counts, Lambdanot1_counts, Lambda1 = counts(files[0])
-time_steps15, Lambda15_counts, Lambdanot15_counts, Lambda15 = counts(files[1])
-
-growth_rate_Lambda1,err_Lambda1 = estimate_growth_rate(Lambda1_counts, 0.1)
-growth_rate_Lambda15, err_Lambda15 = estimate_growth_rate(Lambdanot15_counts, 0.1)
-
-print(f"Estimated growth rate for Lambda=1: {growth_rate_Lambda1}+-{err_Lambda1}")
-print(f"Estimated growth rate for Lambda=5: {growth_rate_Lambda15}+-{err_Lambda15}")
-
-plt.figure(figsize=(5, 3.5))
-plt.plot(time_steps1, Lambda1_counts, 'o', color=colour_Lambda(1), label=" Counts Lambda =" + str(1))
-plt.plot(time_steps1, np.exp(growth_rate_Lambda1 * np.array(time_steps1)), '-', color=colour_Lambda(1), label="Fit Lambda=" + str(1) + ": N(t)= exp("+str(round(growth_rate_Lambda1, 2)) +"*t)")
-plt.plot(time_steps15, Lambdanot15_counts, 'o', color=colour_Lambda(5), label=" Counts Lambda =" + str(5))
-plt.plot(time_steps15, np.exp(growth_rate_Lambda15 * np.array(time_steps15)), '-', color=colour_Lambda(5), label="Fit Lambda=" + str(5) + ": N(t)= exp("+str(round(growth_rate_Lambda15, 2)) +"*t)")
-
-plt.ylabel("Count N(t)")
-plt.yscale("log")
-plt.xlabel("Time (h)")
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-
-
-plt.figure(figsize=(5, 3.5))
-time_steps1, Rg_1, Lambdas, Rg_Lambda1, Rg_Lambdanot1=RgLambda_time(files[0])
-time_steps15, Rg_15, Lambdas, Rg_Lambda1, Rg_Lambdanot1=RgLambda_time(files[1])
-
-plt.plot(time_steps1, Rg_1, 'o', color=colour_Lambda(1), label="Lambda =" + str(1))
-plt.plot(time_steps15, Rg_15, 'o', color=colour_Lambda(5), label="Lambda =" + str(5))
-plt.ylabel("Rg")
-
-
-
-
-
-plt.xlabel("Time (h)")
-plt.legend()
-plt.tight_layout()
-plt.show()"""
