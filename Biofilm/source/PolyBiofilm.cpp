@@ -119,6 +119,11 @@ void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counte
     update_neighbours=false;
   }
 
+  for ( auto &cell : mCells ) //reset the forces and torques for this timestep
+  {
+    cell->reset();
+  }
+
   // Update the force and torque for each cell to the current time
   polyInteractParticles(mCells);
 
@@ -132,7 +137,6 @@ void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counte
     {
       update_neighbours=true;
     }
-    cell->reset();
   }
 
 }

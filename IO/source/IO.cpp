@@ -14,6 +14,10 @@ std::vector<std::string> col_headers
   "ori_x\t",  // orientation vector components
   "ori_y\t",
   "ori_z\t",
+  "st_par\t"
+  "st_perp\t"
+  "st_shear1\t"
+  "st_shear2\t"
   "lower_link\t", // Output who these bacteria are chained to
   "upper_link\n"
 };
@@ -30,7 +34,11 @@ std::vector<std::string> col_headers
   "pos_z\t",
   "ori_x\t",  // orientation vector components
   "ori_y\t",
-  "ori_z\n"
+  "ori_z\t"
+  "st_par\t"
+  "st_perp\t"
+  "st_shear1\t"
+  "st_shear2\n"
 };
 #endif // End chaining
 

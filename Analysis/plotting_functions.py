@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import drag_functions as dfunc
 import pandas as pd
-
+import os
+import re
+import glob
 
 def plot_count(data_dir):
     time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
@@ -65,8 +67,6 @@ def plot_shape_anis_time(data_dir):
         plt.plot(time_steps,shape_tot1, 'o', color=dfunc.colour_Lambda(Lambdas[0]), label="$ \Lambda = " + str(Lambdas[0])+"$")
 
 
-
-
     else: #If only one Lambda, only Rg_tot is required, so skip the rest
         shape_tot2 = []
         for Lambda in Lambdas:
@@ -88,6 +88,68 @@ def plot_shape_anis_time(data_dir):
                     
 
 
+def plot_stress_time(data_dir):
+    file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+    files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
+
+    time_steps = []
+
+    Lambda1_stress_perp = []
+    Lambda1_stress_par = []
+    Lambda1_stress_shear1 = []
+    Lambda1_stress_shear2 = []
+
+    Lambdanot1_stress_shear1 = []
+    Lambdanot1_stress_shear2 = []
+    Lambdanot1_stress_par = []
+    Lambdanot1_stress_perp = []
+
+
+    for file_path in files:
+        match = re.search(r'(\d+)', os.path.basename(file_path))
+        if not match:
+            continue
+        time_step = int(match.group(1))
+        df = pd.read_csv(file_path, sep="\t")
+        time_steps.append(time_step * 0.1)
+        dfunc.find_stress(df)
+        Lambdas = dfunc.find_Lambdas(df)
+        for Lambda in Lambdas:
+            if Lambda == 1.0:
+                cells = dfunc.find_Lambda_cells(df)
+                par,perp,tau1,tau2 = dfunc.find_stress(cells)
+                Lambda1_stress_perp.append(abs(perp.mean()))
+                Lambda1_stress_par.append(abs(par.mean()))
+                Lambda1_stress_shear1.append(abs(tau1.mean()))
+                Lambda1_stress_shear2.append(abs(tau2.mean()))
+
+            else:
+
+                cells = dfunc.find_Lambda_cells(df,Lambda=Lambda)
+                par,perp,tau1,tau2 = dfunc.find_stress(cells)
+                Lambdanot1_stress_perp.append(abs(perp.mean()))
+                Lambdanot1_stress_par.append(abs(par.mean()))
+                Lambdanot1_stress_shear1.append(abs(tau1.mean()))
+                Lambdanot1_stress_shear2.append(abs(tau2.mean()))
+
+        
+    for Lambda in Lambdas:
+        if Lambda == 1.0:
+            plt.plot(time_steps,Lambda1_stress_perp, "x",label= "$\sigma_{\perp}$", color=dfunc.colour_Lambda(Lambda))
+            plt.plot(time_steps,Lambda1_stress_par, "o",label= "$\sigma_{\parallel}$",color=dfunc.colour_Lambda(Lambda))
+            plt.plot(time_steps,Lambda1_stress_shear1, "*",label= "$shear 1$", color=dfunc.colour_Lambda(Lambda))
+            plt.plot(time_steps,Lambda1_stress_shear2, ".",label= "$shear 2$", color=dfunc.colour_Lambda(Lambda))
+        else:
+            plt.plot(time_steps,Lambdanot1_stress_perp, "x",label= "$\sigma_{\perp}$", color=dfunc.colour_Lambda(Lambda))
+            plt.plot(time_steps,Lambdanot1_stress_par, "o",label= "$\sigma_{\parallel}$",color=dfunc.colour_Lambda(Lambda))
+            plt.plot(time_steps,Lambdanot1_stress_shear1, "*",label= "$shear 1$", color=dfunc.colour_Lambda(Lambda))
+            plt.plot(time_steps,Lambdanot1_stress_shear2, ".",label= "$shear 2$", color=dfunc.colour_Lambda(Lambda))
+
+    
+    
+
+
+
 #Plotting utilities
 def repeat_files(filepath,n_repeats):
     repeats = []
@@ -96,13 +158,13 @@ def repeat_files(filepath,n_repeats):
     return repeats
 
 
-"""plt.figure(figsize=(5, 3.5))
+plt.figure(figsize=(5, 3.5))
 test_file_single= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\FreeGrow\\Lambda1\\repeat4"
 
 test_file_double= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\Interacting_colonies\\Lambda1AND5\\repeat0"
 
-test_issue = "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\Interacting_colonies\\repeat1"
+test_issue = "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\test\\Stress\\repeat1"
 
-plot_GR(test_issue)
+plot_stress_time(test_issue)
 plt.legend()
-plt.show()"""
+plt.show()

@@ -466,6 +466,10 @@ inline void computeHertzianForceTorque(
   Vec3 force_pos = cA - A->getRadius()*normal_BA;
   Vec3 torque = cross(force_pos-A->getPos(),force);
 
+  Vec3 rStress = force_pos - A->getPos();
+
+  dynamic_cast<RodShapedBacterium*>(A)->addStressContribution(rStress, force);
+
   A->addForce(force);
   A->addTorque(torque);
 }

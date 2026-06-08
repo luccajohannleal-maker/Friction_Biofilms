@@ -114,6 +114,33 @@ public:
   virtual ~Vec3 ();
 };
 
+
+struct Stress2D // this structure considers the virial stress tensor in 2D. 
+{
+  // it does not consider the cartesian directions. Instead it considers the stress parallel
+  // and perpendicular to the axis of the cell, along the shear stress experienced. 
+
+  // for 3D implementation, require the inclusion of the extra components
+
+ double parallel = 0.0;
+ double perpendicular = 0.0;
+ double shear1 = 0.0;
+ double shear2 = 0.0;
+
+
+Stress2D& operator+=(const Stress2D& rhs) //sums contributions of the stress tensor
+{
+  parallel += rhs.parallel;
+  perpendicular += rhs.perpendicular;
+  shear1 += rhs.shear1;
+  shear2 += rhs.shear2;
+  return *this;
+}
+
+};
+
+
+
 /* Comparison operators */
 bool operator== (const Vec3 &v1, const Vec3 &v2);
 bool operator!= (const Vec3 &v1, const Vec3 &v2);

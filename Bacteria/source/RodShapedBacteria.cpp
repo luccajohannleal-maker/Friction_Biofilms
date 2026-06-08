@@ -69,6 +69,7 @@ double RodShapedBacterium::mRodModE   { constants::nondim_rodModE };
 double RodShapedBacterium::mAvgDivLen { constants::nondim_avg_div_L };
 double RodShapedBacterium::mAvgGrwthRate { constants::nondim_rodGrwthRtePreFac };
 double RodShapedBacterium::mLinkingProb { 0.5 };                 //!< Probability daughters link
+Stress2D mStress2D;
 
 #if defined(CHAINING)
 double RodShapedBacterium::mKappa { constants::nondim_kappa };   //!< Spring tension
@@ -171,6 +172,39 @@ void RodShapedBacterium::move(double dt)
   mPos+=mVel*dt;
 }
 
+
+void RodShapedBacterium::addStressContribution(
+    const Vec3& r,
+    const Vec3& F
+)
+{ //addition of the contribution of a force to the stress tensor
+
+  Vec3 n = getOrientation(); //gets cell orientation
+
+  Vec3 nPerp{ //computes the perpendicular direction of cell (-ny, nx, 0)
+          -n.y,
+          n.x,
+          0
+  }; 
+  //splits r parallel and perpendicular
+  double r_par = dot(r,n);
+  double r_perp = dot(r,nPerp);
+
+  //splits F parallel and perpendicular
+  double F_par = dot(F,n);
+  double F_perp = dot(F,nPerp);
+
+  double cellArea = getCellArea();
+
+  //adds the contributions to each of the stresses
+  mStress2D.parallel += r_par*F_par/cellArea;
+  mStress2D.perpendicular += r_perp*F_perp/cellArea;
+  mStress2D.shear1 += r_par*F_perp/cellArea;
+  mStress2D.shear2 += r_perp*F_par/cellArea;
+}
+
+
+
 //--------- noise to translational and rotational velocity------
 
 // Function to generate Gaussian noise
@@ -221,6 +255,7 @@ void RodShapedBacterium::reset()
   mAngVel.zero();
   mForce.zero();
   mTorque.zero();
+  resetStress2D();
 }
 
 Vec3 RodShapedBacterium::getOrientation() const
@@ -232,11 +267,9 @@ Vec3 RodShapedBacterium::getOrientation() const
   return n_hat;
 }
 
-Vec3 RodShapedBacterium::getStress() const
+void RodShapedBacterium::resetStress2D()
 {
-  Vec3 n_hat{getOrientation()};
-  
-
+    mStress2D = Stress2D{};
 }
 
 void RodShapedBacterium::getMyEndVecs(Vec3& p, Vec3& q) const

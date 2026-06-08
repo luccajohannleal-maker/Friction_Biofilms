@@ -339,3 +339,17 @@ def estimate_growth_rate(counts, time_step=0.1):
     return popt[0],np.sqrt(np.diag(pcov))[0]
 
 
+    
+
+
+def find_stress(cells_data):
+    par_stress = cells_data["st_par"]
+    perp_stress = cells_data["st_perp"]
+    shear1 = cells_data["st_shear1"]
+    shear2 = cells_data["st_shear2"]
+
+    return par_stress, perp_stress, shear1, shear2
+
+
+
+

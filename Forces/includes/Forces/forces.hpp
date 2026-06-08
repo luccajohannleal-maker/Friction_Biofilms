@@ -172,7 +172,7 @@ inline void interactInterface( IBacterium *cell );
   @return Void.
 */
 
-void polyInteractParticles( std::vector<IBacterium*> &pars );
+void polyInteractParticles( std::vector<IBacterium*> &pars);
 /**<
   \brief Calculate all forces and torques on cells
 

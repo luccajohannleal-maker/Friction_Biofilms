@@ -100,6 +100,7 @@ public:
   Vec3 mAngVel{0,0,0};                //!< angular velocity in the body frame
   Vec3 mTorque{0,0,0};                //!< net torque experienced by this particle (fixed frame)
   double mLength;                     //!< Length of the cylindircal part
+  Stress2D mStress2D;                 //!< Stress tensor experienced
 
   /*---------------------- Set cell hyperparmeters ---------------------------*/
 
@@ -335,11 +336,28 @@ public:
     return mLength;
   }
 
-  virtual Vec3 getStress() const;
+  virtual Stress2D getStress2D() const
+  {
+    return mStress2D;
+  }
+
+  void resetStress2D();
     /**<
-    \brief Find Stress tensor of the cells.
-    @returns 
+    \brief Resets stress experienced by the cell.
+    @returns
   */
+
+  void addStressContribution(
+    const Vec3& r,
+    const Vec3& F
+);
+/**<
+  \brief Calculate the contribution to the stress tensor
+
+  @param[in,out] r: lever arm from COM to contact
+  F: force acting on cell
+  @return Void.
+*/
 
   virtual ~RodShapedBacterium () {};
 
@@ -354,6 +372,10 @@ public:
     out << mRadius           << "\t";
     out << mPos              << "\t";
     out << getOrientation()  << "\t";
+     out << getStress2D().parallel       << "\t";
+    out << getStress2D().perpendicular  << "\t";
+    out << getStress2D().shear1         << "\t";
+    out << getStress2D().shear2         << "\t";
     if (getLowerLink()) out << getLowerLink()->getID() << "\t";
     else out << "None" << "\t";
     if (getUpperLink()) out << getUpperLink()->getID() << "\n";
@@ -365,8 +387,11 @@ public:
     out << mLength           << "\t";
     out << mRadius           << "\t";
     out << mPos              << "\t";
-    out << getOrientation()  << "\n"; //WHEN STRESS CHANGE TO TAB
-    //out << getStress() << "\n";
+    out << getOrientation()  << "\t";
+    out << getStress2D().parallel       << "\t";
+    out << getStress2D().perpendicular  << "\t";
+    out << getStress2D().shear1         << "\t";
+    out << getStress2D().shear2         << "\n";
 #endif
   }
 };

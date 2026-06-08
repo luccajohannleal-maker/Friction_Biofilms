@@ -200,6 +200,29 @@ def plot_shape_anisotropy(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved anisotropy plot to: {save_path}")
     plt.show()
 
+def plot_stress(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    for data_dir in data_dirs:
+        pfunc.plot_stress_time(data_dir)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$\sigma_{\parallel}$, $\sigma_{\perp}$ and shear")
+    plt.legend()
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"stress_colony.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved stress plot to: {save_path}")
+    plt.show()
+
+
 
 def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
