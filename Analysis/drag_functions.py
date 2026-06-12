@@ -72,6 +72,7 @@ def centerCells(cells):
     """
     x_centre, y_centre, z_centre = centerBiofilm(cells)
 
+
     for cell in cells:
         cell.pos_x -= x_centre
         cell.pos_y -= y_centre
@@ -79,12 +80,10 @@ def centerCells(cells):
     return cells
 
 def distance_from_origin(cells):
-
     cells = centerCells(cells)
-    dist=np.zeros(len(cells))
-    for i in range(0,len(cells)):
-        dist[i] = np.sqrt(cells[i].pos_x**2+cells[i].pos_y**2+cells[i].pos_z**2)
-
+    dist=[]
+    for cell in cells:
+        dist.append(np.sqrt(cell.pos_x**2 + cell.pos_y**2 + cell.pos_z**2))
     return dist
 
 
@@ -160,13 +159,15 @@ def position_cells(cells):
     y_cell = np.array(y_cell)
     return x_cell,y_cell
 
+
+
+
 def RgLambda_time(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
-    
 
-    Rg_Lambda1 = []
-    Rg_Lambdanot1 = []
+    Rg_1 = []
+    Rg_2 = []
     time_steps = []
     Rg_tot = []
 
@@ -182,24 +183,34 @@ def RgLambda_time(data_dir):
         Rg_tot.append(Gyration_values(cells)[0])
         time_steps.append(time_step * 0.1)
 
+        Lambdas = sorted(Lambdas)
         if len(Lambdas) != 1: #If only one Lambda, only Rg_tot is required, so skip the rest
-            for Lambda in Lambdas:
-                if Lambda == 1.0:
-                    cells1 = find_Lambda_cells(cells,1)
-                    Rg_Lambda1.append(Gyration_values(cells1)[0])
-                else:
-                    cellsnot1 = find_Lambda_cells(cells,Lambda)
-                    Rg_Lambdanot1.append(Gyration_values(cellsnot1)[0]) 
-    
-    return time_steps, Rg_tot, Lambdas, Rg_Lambda1, Rg_Lambdanot1
+            cells1 = find_Lambda_cells(cells,Lambdas[0])
+            Rg_1.append(Gyration_values(cells1)[0])
+        
+            cells2 = find_Lambda_cells(cells,Lambdas[1])
+            Rg_2.append(Gyration_values(cells2)[0])
+
+    return time_steps, Rg_tot, Lambdas, Rg_1, Rg_2
+
+def RgLambda_time_est(Rg, time_step=0.1):
+    Rg = np.asarray(Rg)
+    Rg[Rg<1] = 1
+    linear_rg = np.log2(Rg)
+
+    t = np.arange(0, (len(Rg) - 0.5)* time_step, time_step) #0.5 INCLUDED TO AVOID ANY SMALL ERRORS IN FLOAT POINTS
+    popt, pcov= curve_fit(Rg_Lambda_growth, t, linear_rg, p0=(0,2.5)) # tau_rg = 2*tdouble - see notes
+    return popt,np.sqrt(np.diag(pcov))
+
+def Rg_Lambda_growth(t,R0,tau):
+    return R0 + t/tau
 
 def Gyr_eig_time(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
     
-
-    Rg_Lambda1_eig = []
-    Rg_Lambdanot1_eig = []
+    Rg1_eig = []
+    Rg2_eig = []
     time_steps = []
     Rg_tot_eig = []
 
@@ -211,22 +222,66 @@ def Gyr_eig_time(data_dir):
         time_step = int(match.group(1))
         cells = ut.getCells(file_path)
         Lambdas = find_Lambdas(cells)
+        Lambdas = sorted(Lambdas)
 
         Rg_tot_eig.append(Gyration_values(cells)[1])
         time_steps.append(time_step * 0.1)
 
         if len(Lambdas) != 1: #If only one Lambda, only Rg_tot is required, so skip the rest
-            for Lambda in Lambdas:
-                if Lambda == 1.0:
-                    cells1 = find_Lambda_cells(cells,1)
-                    Rg_Lambda1_eig.append(Gyration_values(cells1)[1])
-                else:
-                    cellsnot1 = find_Lambda_cells(cells,Lambda)
-                    Rg_Lambdanot1_eig.append(Gyration_values(cellsnot1)[1]) 
+            cells1 = find_Lambda_cells(cells,Lambdas[0])
+            Rg1_eig.append(Gyration_values(cells1)[1])
+
+            cells2 = find_Lambda_cells(cells,Lambdas[1])
+            Rg2_eig.append(Gyration_values(cells2)[1]) 
     
-    return time_steps, np.asarray(Rg_tot_eig), Lambdas, np.asarray(Rg_Lambda1_eig), np.asarray(Rg_Lambdanot1_eig)
+    return time_steps, np.asarray(Rg_tot_eig), Lambdas, np.asarray(Rg1_eig), np.asarray(Rg2_eig)
+
+def calc_asphericity(data_dir):
+    file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+    files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
+    
+    asph1 = []
+    asph2 = []
+    time_steps = []
 
 
+    for file_path in files:
+        match = re.search(r'(\d+)', os.path.basename(file_path))
+        if not match:
+            continue
+
+        time_step = int(match.group(1))
+        cells = ut.getCells(file_path)
+        Lambdas = find_Lambdas(cells)
+        Lambdas = sorted(Lambdas)
+        time_steps.append(time_step * 0.1)
+
+        if len(Lambdas) == 1: #If only one Lambda, only Rg_tot is required, so skip the rest
+            cells1 = find_Lambda_cells(cells,Lambdas[0])
+            rg,eigenv = Gyration_values(cells1)
+            if eigenv[0] and eigenv[1] == 0: #one cell
+                asph1.append(1) 
+            else:
+                asph1.append((eigenv[0]-eigenv[1])**2 /((eigenv[0]+eigenv[1])**2))
+            
+        else:
+            cells1 = find_Lambda_cells(cells,Lambdas[0])
+            rg1,eigenv1 = Gyration_values(cells1)
+
+            cells2 = find_Lambda_cells(cells,Lambdas[1])
+            rg2,eigenv2 = Gyration_values(cells2)
+
+            if eigenv1[0] and eigenv1[1] == 0: #one cell
+                asph1.append(1) 
+            else:
+                asph1.append((eigenv1[0]-eigenv1[1])**2 /((eigenv1[0]+eigenv1[1])**2))
+        
+            if eigenv2[0] and eigenv2[1] == 0: #one cell
+                asph2.append(1) 
+            else:
+                asph2.append((eigenv2[0]-eigenv2[1])**2 /((eigenv2[0]+eigenv2[1])**2))
+
+    return time_steps, Lambdas, asph1, asph2
 
 
 def find_Lambda_cells(cells, Lambda=1.0):
@@ -285,6 +340,10 @@ def colour_Lambda(Lambda):
     """
     if Lambda == 1.0:
         return "#00ffff"
+    elif Lambda == 1.001:
+        return "#1e00ff"
+    elif Lambda == 10.001:
+        return "#4f7a55"
     elif Lambda < 1.0:
         return (Lambda, 0, 0, 1)
     elif Lambda > 1.0:
@@ -318,6 +377,28 @@ def counts(data_dir):
 
     return time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas
 
+def doubling_linear_growth(t, t_doub, N0):
+        return N0 + t/t_doub
+def doubling_exp_growth(t, t_doub):
+        return  2**(t/t_doub)
+
+
+def estimate_exp_growth_rate(counts, time_step=0.1):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    t = np.arange(0, (len(counts) - 0.5)* time_step, time_step) #0.5 INCLUDED TO AVOID ANY SMALL ERRORS IN FLOAT POINTS
+    popt, pcov= curve_fit(doubling_exp_growth, t, counts, p0=(0.7))
+
+    return popt,np.sqrt(np.diag(pcov))
+
 def estimate_growth_rate(counts, time_step=0.1):
     """
         Parameters:
@@ -329,27 +410,31 @@ def estimate_growth_rate(counts, time_step=0.1):
         Returns:
             doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
     """
-    def doubling_growth(t, t_doub):
-        return 2**(t/t_doub)
-    
-   
+    linear_counts = np.log2(counts)
+
     t = np.arange(0, (len(counts) - 0.5)* time_step, time_step) #0.5 INCLUDED TO AVOID ANY SMALL ERRORS IN FLOAT POINTS
-    popt, pcov= curve_fit(doubling_growth, t, counts,p0=0.7)
+    popt, pcov= curve_fit(doubling_linear_growth, t, linear_counts, p0=(1.25, 0))
 
-    return popt[0],np.sqrt(np.diag(pcov))[0]
-
-
-    
+    return popt,np.sqrt(np.diag(pcov))
 
 
-def find_stress(cells_data):
-    par_stress = cells_data["st_par"]
-    perp_stress = cells_data["st_perp"]
-    shear1 = cells_data["st_shear1"]
-    shear2 = cells_data["st_shear2"]
+def find_stress(cells_data): #divide by two as expected from paper "Growing microdomains"
+    par_stress = abs(cells_data["st_par"])/2
+    perp_stress = abs(cells_data["st_perp"])/2
+    shear1 = abs(cells_data["st_shear1"])/2
+    shear2 = abs(cells_data["st_shear2"])/2
 
     return par_stress, perp_stress, shear1, shear2
 
+def find_pressure(cells_data):
+   par,perp,shear1,shear2 = find_stress(cells_data)
 
+   par = np.asarray(par)
+   perp = np.asarray(perp)
+
+   p = abs(par+perp)/2 #pressure
+   alpha = abs(par - perp) #deviatoric active stress
+   
+   return p, alpha
 
 

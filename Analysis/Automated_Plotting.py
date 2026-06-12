@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
+from matplotlib.lines import Line2D
+import matplotlib.patches as mpatches
 
 
 #importing defined modules/functions
@@ -33,14 +35,20 @@ def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     else:
         data_dirs = list(data_dirs)
 
+    Lambdas = []
 
     for data_dir in data_dirs:
-        pfunc.plot_count(data_dir)
+        Lambdas += list(pfunc.plot_count(data_dir))
+    
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
 
     plt.xlabel("Time (h)")
     plt.ylabel("Cell/Segment Count")
     plt.yscale("log")
-    plt.legend()
     plt.tight_layout()
 
 
@@ -118,20 +126,21 @@ def plot_Rg_over_time(data_dirs, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
     else:
         data_dirs = list(data_dirs)
 
+    Lambdas = []
+
     for data_dir in data_dirs:
-        pfunc.plot_rg(data_dir)
+        Lambdas += list(pfunc.plot_rg_linear(data_dir))
 
-    
-    #if len(Rg_tot) == len(time_steps):
-        #plt.plot(time_steps, Rg_tot, 'o', color='black', label="Total Rg")
-
-    
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
             
     plt.xlabel("Time (h)")
-    plt.ylabel("Rg (microm)")
-    plt.yscale("log")
-    plt.legend()
+    plt.ylabel("$log_2 [R_g] $ (microm)")
     plt.tight_layout()
+
 
     os.makedirs(output_dir, exist_ok=True)
     save_path = os.path.join(output_dir, f"Rg.pdf")
@@ -144,7 +153,11 @@ def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR):
     fig, axes = plt.subplots(1, 1, figsize=(15, 3),
                              constrained_layout=True, facecolor='w')
     
-    dfunc.plotCells(axes, file_path)
+    Lambdas = list(dfunc.plotCells(axes, file_path))
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    axes.legend(handles=legend_elements)
 
     plt.tight_layout()
     
@@ -164,12 +177,18 @@ def plot_growth_rate(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     else:
         data_dirs = list(data_dirs)
 
+    Lambdas = []
+
     for data_dir in data_dirs:
-        pfunc.plot_GR(data_dir)
+        Lambdas= Lambdas + list(pfunc.plot_GR_linear(data_dir)) #can replace plot_GR_exp with plot_GR_linear
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
 
     plt.xlabel("Time (h)")
-    plt.ylabel("Count N(t)")
-    plt.legend()
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"growth_rate_GR.pdf")
@@ -178,7 +197,7 @@ def plot_growth_rate(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved growth rate plot to: {save_path}")
     plt.show()
 
-def plot_shape_anisotropy(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+def plot_shape_asphericity(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
 
     if type(data_dirs) == str:
@@ -186,21 +205,30 @@ def plot_shape_anisotropy(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     else:
         data_dirs = list(data_dirs)
 
+    Lambdas =[]
+
     for data_dir in data_dirs:
-        pfunc.plot_shape_anis_time(data_dir)
+        Lambdas= Lambdas + list(pfunc.plot_shape_asphericity_time(data_dir))
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
 
     plt.xlabel("Time (h)")
-    plt.ylabel("Relative shape anisotropy $\kappa$")
-    plt.legend()
+    plt.ylabel("Shape asphericity $A$")
     plt.tight_layout()
 
-    save_path = os.path.join(output_dir, f"anisotropy_colony.pdf")
+    save_path = os.path.join(output_dir, f"asphericity_colony.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
-    print(f"Saved anisotropy plot to: {save_path}")
+    print(f"Saved asphericity plot to: {save_path}")
     plt.show()
 
-def plot_stress(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+
+
+def plot_stress_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
 
     if type(data_dirs) == str:
@@ -208,18 +236,191 @@ def plot_stress(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     else:
         data_dirs = list(data_dirs)
 
+    Lambdas = []
     for data_dir in data_dirs:
-        pfunc.plot_stress_time(data_dir)
+        Lambdas = Lambdas + list(pfunc.plot_stress_time(data_dir))
+    
+    Lambdas = set(Lambdas)
+    legend_elements = [Line2D([0], [0], color='k', marker="v",label= r"$\tau_2$", markersize=15),
+                    Line2D([0], [0], color='k', marker="*",label= r"$\tau_1$", markersize=15),
+                    Line2D([0], [0], color='k',marker="o",label= "$\sigma_{\parallel}$", markersize=15),
+                    Line2D([0], [0], color='k',marker="x",label= "$\sigma_{\perp}$", markersize=15),
+                    ]
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
 
+    plt.legend(handles=legend_elements)
     plt.xlabel("Time (h)")
-    plt.ylabel("$\sigma_{\parallel}$, $\sigma_{\perp}$ and shear")
-    plt.legend()
+    plt.ylabel(r"$\sigma_{\parallel}$, $\sigma_{\perp}$ and $\tau$")
     plt.tight_layout()
 
-    save_path = os.path.join(output_dir, f"stress_colony.pdf")
+    save_path = os.path.join(output_dir, f"stress_colony_time.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
-    print(f"Saved stress plot to: {save_path}")
+    print(f"Saved stress over time plot to: {save_path}")
+    plt.show()
+
+def plot_pressure_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+    for data_dir in data_dirs:
+        Lambdas = Lambdas + list(pfunc.plot_pressure_time(data_dir))
+    
+    Lambdas = set(Lambdas)
+    legend_elements = [
+                    Line2D([0], [0], color='k',marker="o",label= r"$\alpha$", markersize=15),
+                    Line2D([0], [0], color='k',marker="x",label= "$p$", markersize=15),
+                    ]
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+
+    plt.legend(handles=legend_elements)
+    plt.xlabel("Time (h)")
+    plt.ylabel(r'pressure and $\alpha$')
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"pressure_time.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved pressure plot to: {save_path}")
+    plt.show()
+
+
+
+def plot_stress_dist(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+    for data_dir in data_dirs:
+        files = np.asarray(pfunc.get_file_paths(data_dir))
+        filepath = files[-1]
+        print(filepath)
+        Lambdas = Lambdas + list(pfunc.plot_stress_distance(filepath))
+
+    Lambdas = set(Lambdas)
+    legend_elements = [Line2D([0], [0], color='k', marker="v",label= r"$\tau_2$", markersize=15),
+                    Line2D([0], [0], color='k', marker="*",label= r"$\tau_1$", markersize=15),
+                    Line2D([0], [0], color='k',marker="o",label= "$\sigma_{\parallel}$", markersize=15),
+                    Line2D([0], [0], color='k',marker="x",label= "$\sigma_{\perp}$", markersize=15),
+                    ]
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+
+    plt.legend(handles=legend_elements)
+    plt.xlabel("Distance from centre (microns)")
+    plt.ylabel(r"$\sigma_{\parallel}$, $\sigma_{\perp}$ and $\tau$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"stress_colony_distance.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved stress over distance plot to: {save_path}")
+    plt.show()
+
+def plot_pressure_dist(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+    for data_dir in data_dirs:
+        files = np.asarray(pfunc.get_file_paths(data_dir))
+        filepath = files[-1]
+        print(filepath)
+        Lambdas = Lambdas + list(pfunc.plot_pressure_distance(filepath))
+
+    Lambdas = set(Lambdas)
+    legend_elements = [
+                    Line2D([0], [0], color='k',marker="o",label= r"$\alpha$", markersize=15),
+                    Line2D([0], [0], color='k',marker="x",label= "$p$", markersize=15),
+                    ]
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+
+    plt.legend(handles=legend_elements)
+    plt.xlabel("Distance from centre (microns)")
+    plt.ylabel(r'pressure and $\alpha$')
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"pressure_distance.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved pressure vs distance plot to: {save_path}")
+    plt.show()
+
+
+def average_growth_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.plot_average_growth(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$log_2 <N(t)>$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_GR.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average growth rate plot to: {save_path}")
+    plt.show()
+
+def average_asphericity_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.plot_average_asphericity(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$<A>$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_asphericity.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average asphericity plot to: {save_path}")
     plt.show()
 
 

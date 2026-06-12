@@ -26,10 +26,15 @@ def Lambda_status_to_color(cell):
     Lambda = cell.Lambda
     if Lambda == 1.0:
         return "#00ffff"
+    elif Lambda == 1.001:
+        return "#1e00ff"
+    elif Lambda == 10.001:
+        return "#4f7a55"
     elif Lambda < 1.0:
         return (Lambda, 0, 0, 1)
     elif Lambda > 1.0:
         return (0,(Lambda-1)/(10-1), 0, 1)
+    
 
 
 def chaining_status_to_color(cell):
