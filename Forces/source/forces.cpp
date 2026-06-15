@@ -72,6 +72,49 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>  // Include for file operations
+//!!!!!------------- remove cells when overlapping to prevent sims from crashing--------
+void removeOverlappingCells(std::vector<IBacterium*> &cells, double sepThreshold) {
+    std::unordered_set<IBacterium*> cellsToRemove;
+
+    // Use neighbor lists instead of full pairwise check
+    for (IBacterium* cell : cells) {
+        for (IBacterium* neighbor : cell->getNeighbourList()) {  // Only check nearby cells
+            double sep;
+            Vec3 cA, cB;
+
+            getMinDist(cell, neighbor, sep, cA, cB);  // Compute separation using the virtual contact points
+            Vec3 cv = cA - cB;  // Compute separation vector
+            sep = cv.norm();  // Compute separation distance
+
+            if (sep <= sepThreshold) {
+                // Choose only one cell to remove (based on length or ID)
+                IBacterium* toDelete = (cell->getLength() < neighbor->getLength()) ? cell : neighbor;
+                cellsToRemove.insert(toDelete);
+            }
+        }
+    }
+
+    // Ensure chain integrity before removing cells
+    #ifdef CHAINING
+    for (auto& cell : cellsToRemove) {
+      
+        IBacterium* lowerLink = cell->getLowerLink();
+        IBacterium* upperLink = cell->getUpperLink();
+
+        if (lowerLink) lowerLink->setUpperLink(nullptr);
+        if (upperLink) upperLink->setLowerLink(nullptr);
+    }
+    #endif
+    
+    // Remove selected cells (O(n) deletion instead of O(n²))
+    cells.erase(std::remove_if(cells.begin(), cells.end(),
+                               [&cellsToRemove](IBacterium* cell) {
+                                   return cellsToRemove.count(cell) > 0;
+                               }),
+                cells.end());
+}
+
+#ifdef CHANNEL
 //*----------------------------------------------------------------------------------------------------
 //this is to insure we are deleting cells and if they are in a chain the links being deleted properly/////
 void removeCellsOutsideTrap(std::vector<IBacterium*> &cells, double trapYLimit) {
@@ -119,47 +162,6 @@ void removeCellsOutsideTrap(std::vector<IBacterium*> &cells, double trapYLimit) 
 
   // Remove cells completely outside the trap
   cells.erase(std::remove_if(cells.begin(), cells.end(), isOutsideTrap), cells.end());
-}
-//!!!!!------------- remove cells when overlapping to prevent sims from crashing--------
-void removeOverlappingCells(std::vector<IBacterium*> &cells, double sepThreshold) {
-    std::unordered_set<IBacterium*> cellsToRemove;
-
-    // Use neighbor lists instead of full pairwise check
-    for (IBacterium* cell : cells) {
-        for (IBacterium* neighbor : cell->getNeighbourList()) {  // Only check nearby cells
-            double sep;
-            Vec3 cA, cB;
-
-            getMinDist(cell, neighbor, sep, cA, cB);  // Compute separation using the virtual contact points
-            Vec3 cv = cA - cB;  // Compute separation vector
-            sep = cv.norm();  // Compute separation distance
-
-            if (sep <= sepThreshold) {
-                // Choose only one cell to remove (based on length or ID)
-                IBacterium* toDelete = (cell->getLength() < neighbor->getLength()) ? cell : neighbor;
-                cellsToRemove.insert(toDelete);
-            }
-        }
-    }
-
-    // Ensure chain integrity before removing cells
-    #ifdef CHAINING
-    for (auto& cell : cellsToRemove) {
-      
-        IBacterium* lowerLink = cell->getLowerLink();
-        IBacterium* upperLink = cell->getUpperLink();
-
-        if (lowerLink) lowerLink->setUpperLink(nullptr);
-        if (upperLink) upperLink->setLowerLink(nullptr);
-    }
-    #endif
-    
-    // Remove selected cells (O(n) deletion instead of O(n²))
-    cells.erase(std::remove_if(cells.begin(), cells.end(),
-                               [&cellsToRemove](IBacterium* cell) {
-                                   return cellsToRemove.count(cell) > 0;
-                               }),
-                cells.end());
 }
 
 //-----------------------------------------------
@@ -299,34 +301,37 @@ void interactMultiWallWithTrap(IBacterium *cell, double yMin, double yMax, int l
   }
 }
 
+void interactMultiChannelWall(IBacterium *cell, double yMin, double yMax, int layers) {
+  double wallHertzianConstant = 100.0;  // Weaker constant for each wall layer
+  double totalForceMultiplier = 10.0 / layers;  // Split the force among all layers
+
+ for(int i=0;i<layers;++i)
+    {
+        interactWall(cell, yMin, true, wallHertzianConstant * totalForceMultiplier); //bottom wall
+
+        interactWall(cell, yMax, false, wallHertzianConstant * totalForceMultiplier); //top wall
+    }
+}
+#endif
 
 void polyInteractParticles(std::vector<IBacterium*> &pars) {
 
 
   // BACTERIA WALL INTERACTIONS!!!
-  /*
-    double yMin = -100000.0;  // Minimum y-boundary
-    double yMax = 0.0;  // Maximum y-boundary
+  #ifdef CHANNEL
+    double width = 120.0; //width of trap in non-dim units
+    double yMin = -width/2;  // Minimum y-boundary
+    double yMax = width/2;  // Maximum y-boundary
     int wallLayers = 10;  // Number of wall layers on each side
-    double trapStartX = -75.0 / 1.17;  // Start of the trap region
-    double trapEndX = 75.0 / 1.17;     // End of the trap region
-    double trapHeight = 150.0 / 1.17;  // Height of the trap from the original upper wall (these are all scaled by the PA cell's diameter)
-
-
-    // Remove trapped cells before interactions
-    removeCellsOutsideTrap(pars, yMax);
-
-    // Use an unordered set to track cells marked for deletion
-    std::unordered_set<IBacterium*> cellsToRemove;
   
-    FOR WALLS CHANGE PARALELLISATION TO THIS!!!!!!!--------------------------------------------------------------------------
-    #pragma omp parallel for shared(pars, yMin, yMax, wallLayers, trapStartX, trapEndX, trapHeight, cellsToRemove) \
-            schedule(static) default(none)  
-    */
 
+    #pragma omp parallel for shared(pars, yMin, yMax, wallLayers) \
+            schedule(static) default(none)  
+
+  #else //if channel not defined, paralelisation does not required as many parameters
     #pragma omp parallel for shared(pars) \
             schedule(static) default(none)
-
+  #endif
 
     for (uint ii = 0; ii < pars.size(); ++ii) {
         IBacterium* cell = pars[ii];
@@ -342,8 +347,11 @@ void polyInteractParticles(std::vector<IBacterium*> &pars) {
             }
         }
 
+        
+    #ifdef CHANNEL
         // Interact with overlapping stacked walls, including the trap region for the upper wall
-        //interactMultiWallWithTrap(cell, yMin, yMax, wallLayers, trapStartX, trapEndX, trapHeight);
+        interactMultiChannelWall(cell, yMin, yMax, wallLayers);
+    #endif
 
     #ifdef CHAINING
         computeChainingInteractions(cell);

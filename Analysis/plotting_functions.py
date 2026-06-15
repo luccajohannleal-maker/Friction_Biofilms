@@ -96,6 +96,19 @@ def plot_shape_asphericity_time(data_dir):
         plt.plot(time_steps, asph2, 'o', color=dfunc.colour_Lambda(Lambdas[1]))
         return Lambdas
 
+def plot_delta_asph_time(data_dir):
+    time_steps, Lambdas, asph1, asph2 = dfunc.calc_asphericity(data_dir)
+    dasph = np.asarray(asph1) -np.asarray(asph2)
+
+    if len(Lambdas) == 1:
+        plt.plot(time_steps, asph1, color=dfunc.colour_Lambda(Lambdas[0]))
+        print("OBS: ONLY ONE $\LAMBDA$, CANNOT CALCULATE THE DIFFERENCE")
+        return Lambdas
+
+    else: # color is the higher Lambda.
+        plt.plot(time_steps, dasph, color=dfunc.colour_Lambda(Lambdas[1]))
+        return Lambdas
+
 def plot_stress_time(data_dir):
     files = get_file_paths(data_dir)
 
@@ -129,44 +142,47 @@ def plot_stress_time(data_dir):
                 par,perp,tau1,tau2 = dfunc.find_stress(cells)
 
                 Lambda1_stress_perp.append(abs(perp.mean()))
-                err_Lamba1[i,0] = abs(perp.std())
+                err_Lamba1[i,0] = abs(perp.std())/np.sqrt(len(perp))
 
                 Lambda1_stress_par.append(abs(par.mean()))
-                err_Lamba1[i,1] = abs(par.std())
+                err_Lamba1[i,1] = abs(par.std())/np.sqrt(len(par))
 
                 Lambda1_stress_shear1.append(abs(tau1.mean()))
-                err_Lamba1[i,2] = abs(tau1.std())
+                err_Lamba1[i,2] = abs(tau1.std())/np.sqrt(len(tau1))
 
                 Lambda1_stress_shear2.append(abs(tau2.mean()))
-                err_Lamba1[i,3] = abs(tau2.std())
+                err_Lamba1[i,3] = abs(tau2.std())/np.sqrt(len(tau2))
 
             else:
                 cells = dfunc.find_Lambda_cells(df,Lambda=Lambda)
                 par,perp,tau1,tau2 = dfunc.find_stress(cells)
                 Lambdanot1_stress_perp.append(abs(perp.mean()))
-                err_Lambanot1[i,0] = abs(perp.std())
+                err_Lambanot1[i,0] = abs(perp.std())/np.sqrt(len(perp))
 
                 Lambdanot1_stress_par.append(abs(par.mean()))
-                err_Lambanot1[i,1] = abs(par.std())
+                err_Lambanot1[i,1] = abs(par.std())/np.sqrt(len(par))
+
 
                 Lambdanot1_stress_shear1.append(abs(tau1.mean()))
-                err_Lambanot1[i,2] = abs(tau1.std())
+                err_Lambanot1[i,2] = abs(tau1.std())/np.sqrt(len(tau1))
+
 
                 Lambdanot1_stress_shear2.append(abs(tau2.mean()))
-                err_Lambanot1[i,0] = abs(tau2.std())
+                err_Lambanot1[i,0] = abs(tau2.std())/np.sqrt(len(tau2))
+
         i+=1
         
     for Lambda in Lambdas:
         if Lambda == 1.0:
-            plt.errorbar(time_steps,Lambda1_stress_perp, fmt="x", color=dfunc.colour_Lambda(Lambda))
-            plt.errorbar(time_steps,Lambda1_stress_par, fmt="o",color=dfunc.colour_Lambda(Lambda))
-            plt.errorbar(time_steps,Lambda1_stress_shear1, fmt="*", color=dfunc.colour_Lambda(Lambda))
-            plt.errorbar(time_steps,Lambda1_stress_shear2, fmt="v", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambda1_stress_perp, yerr=err_Lamba1[:,0], fmt="x", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambda1_stress_par, yerr=err_Lamba1[:,1], fmt="o",color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambda1_stress_shear1, yerr=err_Lamba1[:,2], fmt="*", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambda1_stress_shear2, yerr=err_Lamba1[:,3], fmt="v", color=dfunc.colour_Lambda(Lambda))
         else:
-            plt.errorbar(time_steps,Lambdanot1_stress_perp, fmt="x", color=dfunc.colour_Lambda(Lambda))
-            plt.errorbar(time_steps,Lambdanot1_stress_par, fmt="o", color=dfunc.colour_Lambda(Lambda))
-            plt.errorbar(time_steps,Lambdanot1_stress_shear1, fmt="*", color=dfunc.colour_Lambda(Lambda))
-            plt.errorbar(time_steps,Lambdanot1_stress_shear2, fmt="v", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambdanot1_stress_perp, yerr=err_Lambanot1[:,0], fmt="x", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambdanot1_stress_par, yerr=err_Lambanot1[:,1], fmt="o", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambdanot1_stress_shear1, yerr=err_Lambanot1[:,2], fmt="*", color=dfunc.colour_Lambda(Lambda))
+            plt.errorbar(time_steps,Lambdanot1_stress_shear2, yerr=err_Lambanot1[:,3], fmt="v", color=dfunc.colour_Lambda(Lambda))
     return Lambdas
 
 def plot_pressure_time(data_dir):
@@ -335,7 +351,7 @@ def plot_average_growth(data_dirs):
     for Lambda in Lam:
         if Lambda == 1:
             avg_L1 = np.nanmean(L1_count, axis=0)
-            std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2))
+            std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2)*np.sqrt(L1_count.shape[0]))
             params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(avg_L1, time_step=0.1)
             print(f"Behaviour for $\Lambda={Lambda}$: $log_2 N(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
             if len(avg_L1) == len(time):
@@ -344,7 +360,7 @@ def plot_average_growth(data_dirs):
             
         else:
             avg_Ln1 = np.nanmean(Ln1_count, axis=0)
-            std_Ln1 = np.nanstd(Ln1_count, axis=0)/(avg_Ln1*np.log(2))
+            std_Ln1 = np.nanstd(Ln1_count, axis=0)/(avg_Ln1*np.log(2)*np.sqrt(Ln1_count.shape[0]))
             params_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(avg_Ln1, time_step=0.1)
             print(f"Behaviour for $\Lambda={Lambda}$: $log_2 N(t) =({round(params_Lambdanot1[1],3)}+-{round(err_Lambdanot1[1],3)}) + t/({round(params_Lambdanot1[0],3)}+-{round(err_Lambdanot1[0],3)})")
             if len(avg_Ln1) == len(time):
@@ -390,16 +406,70 @@ def plot_average_asphericity(data_dirs):
     L2_Asph = np.asarray(L2_Asph)
 
     avg_Asph1 = np.nanmean(L1_Asph, axis=0)
-    std_Asph1 = np.nanstd(L1_Asph, axis=0)
-    plt.errorbar(time, avg_Asph1,fmt= 'o',yerr=std_Asph1, markersize=6, color=dfunc.colour_Lambda(Lam[0]))
+    err_Asph1 = np.nanstd(L1_Asph, axis=0)/np.sqrt(L1_Asph.shape[0])
+    plt.errorbar(time, avg_Asph1,fmt= 'o',yerr=err_Asph1, markersize=6, color=dfunc.colour_Lambda(Lam[0]))
 
     if len(Lam) != 1:
         avg_Asph2 = np.nanmean(L2_Asph, axis=0)
-        std_Asph2 = np.nanstd(L2_Asph, axis=0)
-        plt.errorbar(time, avg_Asph2,fmt= 'o',yerr=std_Asph2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
+        err_Asph2 = np.nanstd(L2_Asph, axis=0)/np.sqrt(L2_Asph.shape[0])
+        plt.errorbar(time, avg_Asph2,fmt= 'o',yerr=err_Asph2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
 
     return Lam
 
+def plot_average_dasph(data_dirs):
+    raw_L1 = []
+    Lam = []
+    time = []
+    max_len = 0
+
+    # 1. Collect raw data and find the longest timeline
+    for data_dir in data_dirs:
+        time_steps, Lambdas, asph1, asph2 = dfunc.calc_asphericity(data_dir)
+        
+        raw_L1.append(np.asarray(asph1)-np.asarray(asph2))
+        Lam.append(Lambdas)
+
+        # Track the longest time sequence
+        if len(time_steps) > max_len:
+            time = time_steps
+            max_len = len(time_steps)
+    Lam = np.unique(Lam)
+    L1_dAsph = []
+
+
+    # 2. Pad the shorter sequences with NaN up to max_len
+    for item in raw_L1:
+        # Pad Lambda 1 asphericity
+        padded_L1 = list(item) + [np.nan] * (max_len - len(item))
+        L1_dAsph.append(padded_L1)
+
+    L1_dAsph = np.asarray(L1_dAsph)
+
+
+    avg_dAsph = np.nanmean(L1_dAsph, axis=0)
+    err_dAsph = np.nanstd(L1_dAsph, axis=0)/np.sqrt(L1_dAsph.shape[0])
+    plt.errorbar(time, avg_dAsph,fmt= 'o',yerr=err_dAsph, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
+
+    return Lam
+
+
+
+#fancier plots
+def t_doub_Lambda(data_dir):
+    time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
+    
+    if len(Lambda1_counts)>0:
+        params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(Lambda1_counts, time_step=0.1)
+        print(f"Behaviour for $\Lambda=1$: $log_2 N(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
+        plt.scatter(1,params_Lambdanot1[0],c=dfunc.colour_Lambda(1))
+                 
+    if len(Lambdanot1_counts)>0:
+        Lambda = Lambdas[Lambdas != 1.0][0]
+        params_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(Lambdanot1_counts, time_step=0.1)
+        plt.scatter(Lambda,params_Lambda1[0],c=dfunc.colour_Lambda(Lambda))
+        print(f"Behaviour for $\Lambda={Lambda}$: $log_2 N(t) =({round(params_Lambdanot1[1],3)}+-{round(err_Lambdanot1[1],3)}) + t/({round(params_Lambdanot1[0],3)}+-{round(err_Lambdanot1[0],3)})")
+        
+    return Lambdas
 
 
 #Plotting utilities
@@ -422,9 +492,8 @@ test_file_single= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\
 
 test_file_double= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\Interacting_colonies\\Lambda1AND5\\repeat0"
 
-
 test_issue = repeat_files("C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\FreeGrow\\Lambda5",5)
-plot_average_growth(test_issue)
+plot_average_asphericity(test_issue)
 
 plt.legend()
 plt.show()"""

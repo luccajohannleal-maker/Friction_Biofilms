@@ -45,6 +45,41 @@ def plotCells(ax, file):
         ax.axis('scaled')
         ax.axis('off')
 
+
+def plotCells_channel(ax, file, width=120):
+        dat = pd.read_csv(file, sep='\t')
+        cells = ut.getCells(file)
+        x_center,y_center = 0, 0
+
+        y_top= width/2
+        y_bottom = -width/2
+
+        maxx, minx = dat['pos_x'].max() + 5 - x_center, dat['pos_x'].min() - 5 - x_center
+        maxy, miny = dat['pos_y'].max() + 5 - y_center, dat['pos_y'].min() - 5 - y_center
+        X, Y = maxx - minx, maxy - miny
+        X_c, Y_c = 0.5 * (maxx + minx), 0.5 * (maxy + miny)
+        if X >= Y:
+            Y = X
+            miny, maxy = Y_c - 0.5 * Y, Y_c + 0.5 * Y
+        else:
+            X = Y
+            minx, maxx = X_c - 0.5 * X, X_c + 0.5 * X
+
+        fcp.addAllCellsToPlot(cells, ax, ax_rng=maxx - minx, show_id=False, ec='w')
+
+
+        #Plots walls
+        scale = 1
+        wall_color = 'k'
+        ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_top/scale, y_top/scale], color=wall_color, alpha=0.6)
+        ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_bottom/scale, y_bottom/scale], color=wall_color, alpha=0.6)
+
+
+        ax.set_xlim([-80, 80])
+        ax.set_ylim([-5, 160])
+        ax.axis('scaled')
+        ax.axis('off')
+
 def centerBiofilm(cells):
     """
         Parameters:

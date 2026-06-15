@@ -118,6 +118,66 @@ def plot_cells_grid(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved snapshot grid to: {output_path_pdf}")
     plt.show()
 
+def plot_channels(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
+    #repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
+    #num_repeats = len(repeat_dirs)
+    if type(data_dirs) == str:
+        num_repeats = 1
+        data_dirs = [data_dirs]
+    
+    else:
+        data_dirs = list(data_dirs)
+        num_repeats = len(data_dirs)
+
+    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(10, 2* num_repeats),
+                             constrained_layout=True, facecolor='w')
+
+    for r, data_dir in enumerate(data_dirs):
+        file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+        files = sorted(glob.glob(file_pattern))
+        if len(files) < num_snapshots:
+            selected_files = files
+        else:
+            selected_indices = np.linspace(0, len(files) - 1, num_snapshots, dtype=int)
+            selected_files = [files[i] for i in selected_indices]
+
+
+            # # Let's take 4 snapshots spaced by len(files) // 4
+            # selected_indices = [5]  # start from the beginning (or you can use 1 if you want to skip t=0)
+
+            # # Add 3 more points evenly spaced
+            # quarter = len(files) // 4
+            # selected_indices += [quarter, 2 * quarter, 3 * quarter]
+
+            # Get corresponding files
+            selected_files = [files[i] for i in selected_indices]
+        if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
+            for c, (ax, file) in enumerate(zip(axes, selected_files)):
+                dfunc.plotCells_channel(ax, file)
+                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
+                if match:
+                    frame_number = int(match.group(1))
+                    time_hours = frame_number * 0.1
+                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+        else:
+            for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
+                dfunc.plotCells_channel(ax, file)
+                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
+                if match:
+                    frame_number = int(match.group(1))
+                    time_hours = frame_number * 0.1
+                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+            axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
+
+
+    os.makedirs(output_dir, exist_ok=True)
+    output_path_pdf = os.path.join(output_dir, f"channel_snapshot.pdf")
+
+    fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
+    print(f"Saved channel snapshot grid to: {output_path_pdf}")
+    plt.show()
+
+
 def plot_Rg_over_time(data_dirs, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
 
@@ -226,7 +286,34 @@ def plot_shape_asphericity(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved asphericity plot to: {save_path}")
     plt.show()
 
+def plot_dAsph(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
 
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas =[]
+
+    for data_dir in data_dirs:
+        Lambdas= Lambdas + pfunc.plot_delta_asph_time(data_dir)
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda$ ='+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("Difference in $A$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"Dasphericity_colony.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved difference in asphericity plot to: {save_path}")
+    plt.show()
 
 def plot_stress_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
@@ -282,7 +369,7 @@ def plot_pressure_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.legend(handles=legend_elements)
     plt.xlabel("Time (h)")
-    plt.ylabel(r'pressure and $\alpha$')
+    plt.ylabel(r'<pressure> and <$\alpha$> (Pa m)')
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"pressure_time.pdf")
@@ -353,7 +440,7 @@ def plot_pressure_dist(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.legend(handles=legend_elements)
     plt.xlabel("Distance from centre (microns)")
-    plt.ylabel(r'pressure and $\alpha$')
+    plt.ylabel(r'pressure and $\alpha$ (Pa m)')
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"pressure_distance.pdf")
@@ -423,7 +510,35 @@ def average_asphericity_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved average asphericity plot to: {save_path}")
     plt.show()
 
+def average_dasph_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
 
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.plot_average_dasph(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$<\Delta A>$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_dasphericity.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average delta asphericity plot to: {save_path}")
+    plt.show()
 
 def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
@@ -493,6 +608,40 @@ def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved average cell count plot to: {save_path}")
     plt.show()
 #FIX THIS ONE!!!!
+
+
+
+def plot_t_doub_Lambda(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+    for data_dir in data_dirs:
+        files = np.asarray(pfunc.get_file_paths(data_dir))
+        filepath = files[-1]
+        print(filepath)
+        Lambdas = Lambdas + list(pfunc.t_doub_Lambda(filepath))
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+
+    plt.legend(handles=legend_elements)
+    plt.xlabel("$\Lambda$")
+    plt.ylabel('$t_{doubling}$ (h)')
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"pressure_distance.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved pressure vs distance plot to: {save_path}")
+    plt.show()
+
 
 
 def main():

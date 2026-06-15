@@ -18,12 +18,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # All possible simulation MACROS listed below - see README.md
-# -D CHAINING -D DEBUG_CHAINING -D MOVE_3D -D RANDOM_SEED
+# -D CHAINING -D DEBUG_CHAINING -D MOVE_3D -D RANDOM_SEED -D CHANNEL
 
 # Change CMAKE_BUILD_TYPE to Debug and turn on the following for development
 # set(DEBUGGING_FLAGS "-Wall -pedantic -g -pg")
 
-set(SIM_DEFS "-D RANDOM_SEED")
+set(SIM_DEFS "-D RANDOM_SEED -D CHANNEL")
 string(APPEND SIM_DEFS  " -fopenmp ")
 
 # Combine the SIM_DEFs and your debugging flags
