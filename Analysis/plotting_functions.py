@@ -455,20 +455,31 @@ def plot_average_dasph(data_dirs):
 
 
 #fancier plots
-def t_doub_Lambda(data_dir):
-    time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
-    
-    if len(Lambda1_counts)>0:
-        params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(Lambda1_counts, time_step=0.1)
-        print(f"Behaviour for $\Lambda=1$: $log_2 N(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
-        plt.scatter(1,params_Lambdanot1[0],c=dfunc.colour_Lambda(1))
+def t_doub_Lambda(data_dirs):
+
+    tdoubl1=[]
+    tdoubl2=[]
+
+    for data_dir in data_dirs:
+        time_steps, Lambda1_counts, Lambdanot1_counts, Lambdas = dfunc.counts(data_dir)
+        if len(Lambda1_counts)>0:
+            params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(Lambda1_counts, time_step=0.1)
+            tdoubl1.append(params_Lambda1[0])
+
                  
-    if len(Lambdanot1_counts)>0:
-        Lambda = Lambdas[Lambdas != 1.0][0]
-        params_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(Lambdanot1_counts, time_step=0.1)
-        plt.scatter(Lambda,params_Lambda1[0],c=dfunc.colour_Lambda(Lambda))
-        print(f"Behaviour for $\Lambda={Lambda}$: $log_2 N(t) =({round(params_Lambdanot1[1],3)}+-{round(err_Lambdanot1[1],3)}) + t/({round(params_Lambdanot1[0],3)}+-{round(err_Lambdanot1[0],3)})")
-        
+        if len(Lambdanot1_counts)>0:
+            Lambda = Lambdas[Lambdas != 1.0][0]
+            params_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(Lambdanot1_counts, time_step=0.1)
+            tdoubl2.append(params_Lambdanot1[0])
+    
+    if len(tdoubl1)>0:
+        plt.errorbar(1,np.mean(tdoubl1),yerr=np.std(tdoubl1)/np.sqrt(len(tdoubl1)),fmt="o", color=dfunc.colour_Lambda(1))
+        plt.scatter(np.ones(len(tdoubl1)),tdoubl1,color=dfunc.colour_Lambda(1),alpha=0.4,s=1)
+                 
+    if len(tdoubl2)>0:
+        plt.errorbar(Lambda,np.mean(tdoubl2),yerr=np.std(tdoubl2)/np.sqrt(len(tdoubl2)),fmt="o", color=dfunc.colour_Lambda(Lambda))
+        plt.scatter(np.ones(len(tdoubl2))*Lambda,tdoubl2,color=dfunc.colour_Lambda(Lambda),alpha=0.4,s=2)
+    
     return Lambdas
 
 

@@ -118,7 +118,7 @@ def plot_cells_grid(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved snapshot grid to: {output_path_pdf}")
     plt.show()
 
-def plot_channels(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
+def plot_channels(data_dirs, num_snapshots=5,width=120, output_dir=DEFAULT_OUTPUT_DIR):
     #repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
     #num_repeats = len(repeat_dirs)
     if type(data_dirs) == str:
@@ -153,7 +153,7 @@ def plot_channels(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
             selected_files = [files[i] for i in selected_indices]
         if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
             for c, (ax, file) in enumerate(zip(axes, selected_files)):
-                dfunc.plotCells_channel(ax, file)
+                dfunc.plotCells_channel(ax, file, width)
                 match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
                 if match:
                     frame_number = int(match.group(1))
@@ -161,7 +161,7 @@ def plot_channels(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
                     ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
         else:
             for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
-                dfunc.plotCells_channel(ax, file)
+                dfunc.plotCells_channel(ax, file, width)
                 match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
                 if match:
                     frame_number = int(match.group(1))
@@ -611,36 +611,47 @@ def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
 
 
 
-def plot_t_doub_Lambda(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+def plot_t_doub_Lambda_av(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR, lines=False):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
     plt.figure(figsize=(5, 3.5))
-
-    if type(data_dirs) == str:
-        data_dirs = [data_dirs]
-    else:
-        data_dirs = list(data_dirs)
-
     Lambdas = []
-    for data_dir in data_dirs:
-        files = np.asarray(pfunc.get_file_paths(data_dir))
-        filepath = files[-1]
-        print(filepath)
-        Lambdas = Lambdas + list(pfunc.t_doub_Lambda(filepath))
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.t_doub_Lambda(data_dirs)) 
 
     Lambdas = set(Lambdas)
     legend_elements = []
     for Lambda in Lambdas:
         legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
-
     plt.legend(handles=legend_elements)
+
+
+    #plots growth rate lines
+    if lines:
+        plt.plot([0.5,10.5],[0.75,0.75],"--", color="k")
+        plt.plot([0.5,10.5],[1.25,1.25],":", color="k")
+
+
     plt.xlabel("$\Lambda$")
     plt.ylabel('$t_{doubling}$ (h)')
+    plt.xlim([0.5,10.5])
+
     plt.tight_layout()
 
-    save_path = os.path.join(output_dir, f"pressure_distance.pdf")
+    save_path = os.path.join(output_dir, f"tdoub_lambda.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
-    print(f"Saved pressure vs distance plot to: {save_path}")
+    print(f"Saved tdoub vs lambda plot to: {save_path}")
     plt.show()
+
+
+
 
 
 

@@ -116,55 +116,6 @@ void removeOverlappingCells(std::vector<IBacterium*> &cells, double sepThreshold
 
 #ifdef CHANNEL
 //*----------------------------------------------------------------------------------------------------
-//this is to insure we are deleting cells and if they are in a chain the links being deleted properly/////
-void removeCellsOutsideTrap(std::vector<IBacterium*> &cells, double trapYLimit) {
-  auto isOutsideTrap = [trapYLimit](IBacterium* cell) -> bool {
-      std::array<Vec3, 2> poles;
-      cell->getMyEndVecs(poles[0], poles[1]); // Get the end points (poles) of the bacterium
-      
-      // Check if both poles are outside the y < trapYLimit
-      return poles[0].y < trapYLimit && poles[1].y < trapYLimit;
-  };
-
-  // Identify cells to be removed
-  std::vector<IBacterium*> cellsToRemove;
-  for (auto& cell : cells) {
-      if (isOutsideTrap(cell)) {
-          cellsToRemove.push_back(cell);
-      }
-  }
-
-  // Update links and clean up before deleting cells
-  
-  for (auto& cell : cellsToRemove) {
-    #ifdef CHAINING
-      // Get links of the current cell
-      IBacterium* lowerLink = cell->getLowerLink();
-      IBacterium* upperLink = cell->getUpperLink();
-
-      // Handle the links of neighboring cells
-      if (lowerLink) {
-          lowerLink->setUpperLink(nullptr); // Disconnect lower neighbor's upper link
-      }
-      if (upperLink) {
-          upperLink->setLowerLink(nullptr); // Disconnect upper neighbor's lower link
-      }
-    #endif
-
-      // Print details of the removed cell for debugging
-      std::array<Vec3, 2> poles;
-      cell->getMyEndVecs(poles[0], poles[1]);
-      std::cout << "Deleting cell with ID: " << cell->getID()
-                << ", Position: " << cell->getPos()
-                << ", Poles: (" << poles[0] << ") and (" << poles[1] << ")" 
-                << std::endl;
-  }
-
-  // Remove cells completely outside the trap
-  cells.erase(std::remove_if(cells.begin(), cells.end(), isOutsideTrap), cells.end());
-}
-
-//-----------------------------------------------
 //*to use it for cells and walls closest contact point */
 //-----------------------------------------------//
 Vec3 closestPointOnRodToVerticalWall(const IBacterium* cell, double wallX) {
@@ -319,9 +270,11 @@ void polyInteractParticles(std::vector<IBacterium*> &pars) {
 
   // BACTERIA WALL INTERACTIONS!!!
   #ifdef CHANNEL
-    double width = 120.0; //width of trap in non-dim units
+    double width = constants::width; //width of trap in non-dim units
     double yMin = -width/2;  // Minimum y-boundary
     double yMax = width/2;  // Maximum y-boundary
+
+
     int wallLayers = 10;  // Number of wall layers on each side
   
 

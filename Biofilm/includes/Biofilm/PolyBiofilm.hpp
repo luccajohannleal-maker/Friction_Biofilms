@@ -23,6 +23,10 @@ public:
   ulong mTimeSteps;
   GridCells<IBacterium> mGrid;
 
+  #ifdef CHANNEL
+  std::ofstream exitedCellsFile;
+  #endif
+
   /*------------------------------- Utilities --------------------------------*/
   PolyBiofilm (
     std::vector<IBacterium*>& _cells,
@@ -77,7 +81,7 @@ public:
               << std::flush;
   }
 
-  void updateOneTimeStep(bool& update_neighbours,uint &verlet_counter);
+  void updateOneTimeStep(bool& update_neighbours,uint &verlet_counter,uint step);
 
   void runSim();
 

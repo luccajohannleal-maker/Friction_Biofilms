@@ -62,6 +62,7 @@ namespace constants
   inline constexpr double dt { 1e-7 }; // Time step in hours
   inline constexpr double baseLengthScale{ 1 };   //cell's diameter in microns
   inline constexpr double baseZeta{ 200 }; // drag coefficient (lower drag coefficient) in Pa h 
+  inline constexpr double width{60.0}; //width of channel the bacteria are confined to
 
 
   // -------------------------- Chaining -------------------------------

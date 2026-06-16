@@ -336,6 +336,11 @@ public:
     return mLength;
   }
 
+  virtual double getLambda() override
+  {
+    return Lambda;
+  }
+
   virtual Stress2D getStress2D() const
   {
     return mStress2D;

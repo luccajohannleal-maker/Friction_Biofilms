@@ -129,7 +129,10 @@ public:
   {
     return mPos;
   }
-
+double getLambda() override
+{
+    return 1.0;
+}
   virtual void setPos(double x, double y, double z=0.0) override
   {
     mPos.x=x; mPos.y=y; mPos.z=z;

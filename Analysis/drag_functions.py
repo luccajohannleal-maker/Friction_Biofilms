@@ -73,6 +73,8 @@ def plotCells_channel(ax, file, width=120):
         wall_color = 'k'
         ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_top/scale, y_top/scale], color=wall_color, alpha=0.6)
         ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_bottom/scale, y_bottom/scale], color=wall_color, alpha=0.6)
+        ax.plot([y_bottom*1.5/scale, y_bottom*1.5/scale], [y_top/scale, y_bottom/scale],"--", color=wall_color, alpha=0.6)
+        ax.plot([y_top*1.5/scale, y_top*1.5/scale], [y_top/scale, y_bottom/scale],"--", color=wall_color, alpha=0.6)
 
 
         ax.set_xlim([-80, 80])
@@ -387,7 +389,7 @@ def colour_Lambda(Lambda):
 def counts(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
-
+    
     time_steps = []
     Lambda1_counts = []
     Lambdanot1_counts = []

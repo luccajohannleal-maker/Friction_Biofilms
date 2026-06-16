@@ -81,12 +81,104 @@ void PolyBiofilm::createLogFile()
   }
   out_file << gen_rand.getSeed() << '\n';
   out_file.close();
+
+  #ifdef CHANNEL
+        exitedCellsFile.open(sim_out_dir+'/'+"exited_cells.dat", 
+          std::ios::out);
+
+        if(!exitedCellsFile.is_open())
+        {
+        std::cerr << "Failed to open exited_cells.dat\n";
+        std::exit(1);
+        }
+
+        exitedCellsFile << "time" << '\t';
+        exitedCellsFile << "id"<< '\t' ;
+        exitedCellsFile << "Lambda" << '\t';
+        exitedCellsFile << "x" << '\t';
+        exitedCellsFile << "y" << '\t';
+        exitedCellsFile << "length" << '\t';
+        exitedCellsFile << "radius" << '\n';
+  #endif
+
   std::cout << "Saved log file to " << filename << '\n';
 }
 
+#ifdef CHANNEL
+//this is to insure we are deleting cells and if they are in a chain the links being deleted properly/////
+void removeCellsOutsideTrap(
+    std::vector<IBacterium*> &cells, std::ofstream& exitFile, double simTime) 
+    {
+      double length = constants::width*1.5; //length of the trap in non-dim units - defined in constants.hpp
+      double xMin = -length/2;
+      double xMax =  length/2;
+
+
+  auto isOutsideTrap = [xMin, xMax](IBacterium* cell) -> bool {
+      std::array<Vec3, 2> poles;
+      cell->getMyEndVecs(poles[0], poles[1]); // Get the end points (poles) of the bacterium
+      bool leftExit =
+        poles[0].x < xMin && poles[1].x < xMin;
+
+      bool rightExit =
+        poles[0].x > xMax && poles[1].x > xMax;
+      
+      return leftExit || rightExit;
+  };
+
+  // Identify cells to be removed
+  std::vector<IBacterium*> cellsToRemove;
+  for (auto& cell : cells) {
+      if (isOutsideTrap(cell)) {
+          cellsToRemove.push_back(cell);
+      }
+  }
+
+  // Update links and clean up before deleting cells
+  
+  for (auto& cell : cellsToRemove) {
+    #ifdef CHAINING
+      // Get links of the current cell
+      IBacterium* lowerLink = cell->getLowerLink();
+      IBacterium* upperLink = cell->getUpperLink();
+
+      // Handle the links of neighboring cells
+      if (lowerLink) {
+          lowerLink->setUpperLink(nullptr); // Disconnect lower neighbor's upper link
+      }
+      if (upperLink) {
+          upperLink->setLowerLink(nullptr); // Disconnect upper neighbor's lower link
+      }
+    #endif
+
+      // Print details of the removed cell
+      Vec3 pos = cell->getPos();
+
+        exitFile << simTime << "\t";
+        exitFile << cell->getID() << "\t";
+        exitFile << cell->getLambda() << "\t";
+        exitFile << pos.x << "\t";
+        exitFile << pos.y << "\t";
+        exitFile << cell->getLength() << "\t";
+        exitFile<< cell->getRadius() << "\n";
+        if (!cellsToRemove.empty())
+          {
+            exitFile << std::flush;
+          }
+        std::cout << "Cells to remove: " << cellsToRemove.size() << "\n";
+  }
+
+  // Remove cells completely outside the trap
+  cells.erase(std::remove_if(cells.begin(), cells.end(), isOutsideTrap), cells.end());
+}
+#endif
+
+
+
+
 
 long mTotalDivisions = 0; // Initialize the global division counter
-void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counter)
+void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counter, uint step)
 {
   int divisionCount = 0;
   // ---------------------- Grow and divide cells ------------------------------
@@ -130,6 +222,11 @@ void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counte
   for ( auto &cell : mCells )
   {
     cell->move(mDt);
+
+    #ifdef CHANNEL
+    removeCellsOutsideTrap(mCells, exitedCellsFile, step*constants::dt);
+    #endif
+
     double moved {
       dot2( cell->getLoggedPos()-cell->getPos() )
     };
@@ -187,7 +284,7 @@ void PolyBiofilm::runSim()
     }
     else ++verlet_counter;
 
-    updateOneTimeStep(update_neighbours,verlet_counter);
+    updateOneTimeStep(update_neighbours,verlet_counter,tt);
 
     if ( getLength()>=mTargetSize  )
     {

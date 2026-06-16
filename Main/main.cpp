@@ -46,13 +46,13 @@ std::vector<IBacterium*> initialiseBiofilm(
     std::srand(std::time(0));
 
     // Define wall constraints scaled by the diameter of PA Bacteria
-    double xMin = -30; 
-    double xMax = 30;
-    double yMax = 30;
-    double yMin= -30;
+    double xMin = -constants::width/2 + 1; 
+    double xMax = constants::width/2 - 1;
+    double yMax = constants::width/2 - 1;
+    double yMin= -constants::width/2 + 1;
     double normDistance = 4.5; // Minimum spacing
     double maxRadius = 10; // Max spread distance from center
-    int maxAttempts = 300; // Limit placement retries
+    int maxAttempts = 1000; // Limit placement retries
 
     std::vector<std::pair<double, double>> positions; // Track placed positions
 
@@ -327,8 +327,8 @@ int main(int argc, char const *argv[])
 
   sim_out_dir += "/" + run_dir + "/";
   ///////------------------------------
-  int numTypeA = 1;      // Number of TypeA (lambda = 1)
-  int numTypeB = 0;      // Number of TypeB (lambda != 1)
+  int numTypeA = 15;      // Number of TypeA (lambda = 1)
+  int numTypeB = 15;      // Number of TypeB (lambda != 1)
   ////----------------------------------
   double centerX = 0.0;   // Shared center X for mixed distribution
   double centerY = 75.0;   // Shared center Y for mixed distribution

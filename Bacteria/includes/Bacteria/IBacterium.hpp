@@ -44,6 +44,7 @@ public:
   virtual uint getID() const=0;
 
   virtual Vec3& getForce()=0;
+  virtual double getLambda()=0;
   virtual void addForce(Vec3)=0;
   virtual Vec3& getTorque()=0;
   virtual void addTorque(Vec3)=0;
