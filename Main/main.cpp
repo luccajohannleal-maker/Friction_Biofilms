@@ -127,7 +127,7 @@ std::vector<IBacterium*> initialiseBiofilm(
     
             if (isTypeA) {
                 auto* rod = new RodShapedBacterium{
-                    x, y, 0,  //random position x, y, z (in 2D z=0)
+                    -constants::width*1.5/2 + 1, y, 0,  //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
                     RodShapedBacterium::mAvgGrwthRate, // Type A growth rate
@@ -141,7 +141,7 @@ std::vector<IBacterium*> initialiseBiofilm(
             } 
             else if (isTypeB) {
                 auto* rod = new RodShapedBacterium{
-                    x, y, 0, //random position x, y, z (in 2D z=0)
+                    -(-constants::width*1.5/2 + 1), y, 0, //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
                     RodShapedBacterium::mAvgGrwthRate, // Type B growth rate
@@ -327,8 +327,8 @@ int main(int argc, char const *argv[])
 
   sim_out_dir += "/" + run_dir + "/";
   ///////------------------------------
-  int numTypeA = 15;      // Number of TypeA (lambda = 1)
-  int numTypeB = 15;      // Number of TypeB (lambda != 1)
+  int numTypeA = 5;      // Number of TypeA (lambda = 1)
+  int numTypeB = 5;      // Number of TypeB (lambda != 1)
   ////----------------------------------
   double centerX = 0.0;   // Shared center X for mixed distribution
   double centerY = 75.0;   // Shared center Y for mixed distribution

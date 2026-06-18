@@ -99,6 +99,8 @@ void PolyBiofilm::createLogFile()
         exitedCellsFile << "y" << '\t';
         exitedCellsFile << "length" << '\t';
         exitedCellsFile << "radius" << '\n';
+
+        exitedCellsFile.flush();
   #endif
 
   std::cout << "Saved log file to " << filename << '\n';
@@ -135,6 +137,8 @@ void removeCellsOutsideTrap(
   }
 
   // Update links and clean up before deleting cells
+
+  bool wrote = false;
   
   for (auto& cell : cellsToRemove) {
     #ifdef CHAINING
@@ -161,11 +165,13 @@ void removeCellsOutsideTrap(
         exitFile << pos.y << "\t";
         exitFile << cell->getLength() << "\t";
         exitFile<< cell->getRadius() << "\n";
-        if (!cellsToRemove.empty())
-          {
-            exitFile << std::flush;
-          }
-        std::cout << "Cells to remove: " << cellsToRemove.size() << "\n";
+
+       wrote = true;
+  }
+
+  if (wrote)
+  {
+    exitFile.flush();
   }
 
   // Remove cells completely outside the trap
@@ -223,10 +229,6 @@ void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counte
   {
     cell->move(mDt);
 
-    #ifdef CHANNEL
-    removeCellsOutsideTrap(mCells, exitedCellsFile, step*constants::dt);
-    #endif
-
     double moved {
       dot2( cell->getLoggedPos()-cell->getPos() )
     };
@@ -235,6 +237,9 @@ void PolyBiofilm::updateOneTimeStep(bool &update_neighbours, uint &verlet_counte
       update_neighbours=true;
     }
   }
+  #ifdef CHANNEL
+    removeCellsOutsideTrap(mCells, exitedCellsFile, step * constants::dt);
+  #endif
 
 }
 

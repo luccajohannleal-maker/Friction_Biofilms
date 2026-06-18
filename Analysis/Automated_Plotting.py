@@ -379,6 +379,41 @@ def plot_pressure_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.show()
 
 
+def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+
+    for data_dir in data_dirs:
+        Lambdas += list(pfunc.plot_COM_interacting(data_dir))
+    
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    if len(Lambdas)==1:
+        legend_elements = [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambdas[0]),label='$\Lambda =$'+str(Lambdas[0])) ]
+    else:
+        legend_elements.append(Line2D([0], [0], color='k',linestyle="--",label='Total'))
+        for Lambda in Lambdas:
+            legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("x-Position of COM (microns)")
+    plt.tight_layout()
+
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"com_movement.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved COM movement plot to: {save_path}")
+    plt.show()
+
 
 def plot_stress_dist(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
@@ -448,6 +483,7 @@ def plot_pressure_dist(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved pressure vs distance plot to: {save_path}")
     plt.show()
+
 
 
 def average_growth_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
@@ -538,6 +574,36 @@ def average_dasph_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved average delta asphericity plot to: {save_path}")
+    plt.show()
+
+def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.plot_average_COM(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$<x_{COM}>$ (microns)")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_xCOM.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average xCOM plot to: {save_path}")
     plt.show()
 
 def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):

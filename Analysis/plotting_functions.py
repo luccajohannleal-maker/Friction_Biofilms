@@ -230,6 +230,45 @@ def plot_pressure_time(data_dir):
     return Lambdas
 
 
+def plot_COM_interacting(data_dir):
+    files = get_file_paths(data_dir)
+
+    time_steps = []
+
+    xcom1 = [] 
+    xcom2 = []
+    xcomtot=[]
+
+
+    for file_path in files:
+        match = re.search(r'(\d+)', os.path.basename(file_path))
+        if not match:
+            continue
+        time_step = int(match.group(1))
+        df = pd.read_csv(file_path, sep="\t")
+        time_steps.append(time_step * 0.1)
+        Lambdas = sorted(dfunc.find_Lambdas(df))
+
+        xtot,ytot,ztot= dfunc.centerBiofilm(df)
+        xcomtot.append(abs(xtot))
+
+        if len(Lambdas) != 1:
+            df1=dfunc.find_Lambda_cells(df,Lambda=Lambdas[0])
+            x1,y1,z1= dfunc.centerBiofilm(df1)
+            xcom1.append(abs(x1))
+
+            df2=dfunc.find_Lambda_cells(df,Lambda=Lambdas[1])
+            x2,y1,z1= dfunc.centerBiofilm(df2)
+            xcom2.append(abs(x2))
+            
+    if len(Lambdas) == 1:
+        plt.plot(time_steps,xcomtot, ".", color=dfunc.colour_Lambda(Lambdas[0]))
+    else:
+        #plt.plot(time_steps,xcomtot, "--", color="k")
+        plt.plot(time_steps,xcom1, color=dfunc.colour_Lambda(Lambdas[0]))
+        plt.plot(time_steps,xcom2,color=dfunc.colour_Lambda(Lambdas[1]))
+    return Lambdas
+
 
 #plots quantity vs distance
 def plot_stress_distance(filepath):
@@ -452,7 +491,100 @@ def plot_average_dasph(data_dirs):
 
     return Lam
 
+def plot_average_COM(data_dirs):
+    raw1 = []
+    raw2 = []
+    rawtot = []
+    Lam = []
+    time = []
+    max_len = 0
 
+    # 1. Collect raw data and find the longest timeline
+    for data_dir in data_dirs:
+        files = get_file_paths(data_dir)
+
+        time_steps = []
+
+        xcom1 = [] 
+        xcom2 = []
+        xcomtot=[]
+
+        for file_path in files:
+            match = re.search(r'(\d+)', os.path.basename(file_path))
+            if not match:
+                continue
+            time_step = int(match.group(1))
+            df = pd.read_csv(file_path, sep="\t")
+            time_steps.append(time_step * 0.1)
+            Lambdas = sorted(dfunc.find_Lambdas(df))
+
+            xtot,ytot,ztot= dfunc.centerBiofilm(df)
+            xcomtot.append(abs(xtot))
+
+            if len(Lambdas) != 1:
+                df1=dfunc.find_Lambda_cells(df,Lambda=Lambdas[0])
+                x1,y1,z1= dfunc.centerBiofilm(df1)
+                xcom1.append(abs(x1))
+
+                df2=dfunc.find_Lambda_cells(df,Lambda=Lambdas[1])
+                x2,y1,z1= dfunc.centerBiofilm(df2)
+                xcom2.append(abs(x2))
+
+        rawtot.append(xcomtot)
+        Lam.append(Lambdas)
+        if len(Lambdas) != 1:
+            raw1.append(xcom1)
+            raw2.append(xcom2)
+
+        # Track the longest time sequence
+        if len(time_steps) > max_len:
+            time = time_steps
+            max_len = len(time_steps)
+    Lam = np.unique(Lam)
+    com1 = []
+    com2 = []
+    comtot = []
+
+    if len(Lambdas) != 1:
+
+        # 2. Pad the shorter sequences with NaN up to max_len
+        for item1, item2, itemtot in zip(raw1, raw2, rawtot):
+            padded1 = list(item1) + [np.nan] * (max_len - len(item1))
+            com1.append(padded1)
+            
+            padded2 = list(item2) + [np.nan] * (max_len - len(item2))
+            com2.append(padded2)
+
+            paddedtot = list(itemtot) + [np.nan] * (max_len - len(itemtot))
+            comtot.append(paddedtot)
+        
+        comtot = np.asarray(comtot)
+        avgtot = np.nanmean(comtot, axis=0)
+        stdtot =np.nanstd(comtot, axis=0)/(np.sqrt(comtot.shape[0]))
+        #plt.errorbar(time, avgtot,yerr=stdtot,fmt="--", color="k")
+
+        com1 = np.asarray(com1)
+        avg1 = np.nanmean(com1, axis=0)
+        std1 =np.nanstd(com1, axis=0)/(np.sqrt(com1.shape[0]))
+        plt.errorbar(time, avg1,yerr=std1, color=dfunc.colour_Lambda(Lam[0]))
+
+        com2 = np.asarray(com2)
+        avg2 = np.nanmean(com2, axis=0)
+        std2 =np.nanstd(com2, axis=0)/(np.sqrt(comtot.shape[0]))
+        plt.errorbar(time, avg2,yerr=std2, color=dfunc.colour_Lambda(Lam[1]))
+        
+    else:
+        for item in rawtot:
+            paddedtot = list(item) + [np.nan] * (max_len - len(item))
+            comtot.append(paddedtot)
+
+        comtot = np.asarray(comtot)
+
+        avgtot = np.nanmean(comtot, axis=0)
+        stdtot =np.nanstd(comtot, axis=0)/(np.sqrt(comtot.shape[0]))
+        plt.errorbar(time, avgtot,yerr=stdtot, color=dfunc.colour_Lambda(Lam[0]))
+            
+    return Lambdas
 
 #fancier plots
 def t_doub_Lambda(data_dirs):
@@ -498,13 +630,13 @@ def repeat_files(filepath,n_repeats):
 
 
 
-"""plt.figure(figsize=(5, 3.5))
+plt.figure(figsize=(5, 3.5))
 test_file_single= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\FreeGrow\\Lambda1\\repeat4"
 
-test_file_double= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\Interacting_colonies\\Lambda1AND5\\repeat0"
+test_file_double= "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\Interacting_colonies\\stress\\Lambda1AND10\\repeat4"
 
 test_issue = repeat_files("C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\FreeGrow\\Lambda5",5)
-plot_average_asphericity(test_issue)
+plot_COM_interacting(test_file_double)
 
 plt.legend()
-plt.show()"""
+plt.show()

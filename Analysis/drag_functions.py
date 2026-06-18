@@ -91,10 +91,15 @@ def centerBiofilm(cells):
         Returns:
             position of center of cell
     """
+    if type(cells) == pd.DataFrame:
+        x_centre = cells["pos_x"].mean()
+        y_centre = cells["pos_y"].mean()
+        z_centre = cells["pos_z"].mean()
     
-    x_centre = np.mean([cell.pos_x for cell in cells])
-    y_centre = np.mean([cell.pos_y for cell in cells])
-    z_centre = np.mean([cell.pos_y for cell in cells])
+    elif type(cells) == list:
+        x_centre = np.mean([cell.pos_x for cell in cells])
+        y_centre = np.mean([cell.pos_y for cell in cells])
+        z_centre = np.mean([cell.pos_y for cell in cells])
 
     return x_centre, y_centre, z_centre
 
