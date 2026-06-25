@@ -36,7 +36,7 @@ Find defects from simulation input
 
 
 
-       python ./FindDefects-WORKS.py C:\ Users\lucca\Desktop\BiofilmDES-main\run001\biofilm_00095.dat C:\ Users\lucca\Desktop\BiofilmDES-main\Analysis\GeneratedOutput\AnalysisResults\defects.txt 1 5 0.0001
+       python ./FindDefects.py C:\ Users\lucca\Desktop\BiofilmDES-main\run001\biofilm_00095.dat C:\ Users\lucca\Desktop\BiofilmDES-main\Analysis\GeneratedOutput\AnalysisResults\defects.txt 1 5 0.0001
 
     Author: Tim Kozhukhov
         FindDefects.py - Started 24/11/2020

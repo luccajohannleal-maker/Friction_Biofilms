@@ -70,7 +70,6 @@ def getNs(nematic_director,Q,ny,nx):
             nematic_director[yi,xi]=n/np.linalg.norm(n)
 
 def addNematicDirector(ax,cells,q_name,dr=1,streamplot=False,start_point=None):
-    q_name=q_name.replace('Q',f'Q_{dr=}')
     q,Q,grid=RodShapedBacterium.computeChargeDensity(
         cells,dr=dr,
         fname=q_name
@@ -91,7 +90,6 @@ def addNematicDirector(ax,cells,q_name,dr=1,streamplot=False,start_point=None):
                            # maxlength=np.inf,
                            density=2.5)
         strm.lines.set_colors(np.array([1,1,1,1]))
-        print(strm.lines.get_colors())
         return strm
     else:
         mask = np.logical_or(V!=0,U!=0)

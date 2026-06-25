@@ -27,6 +27,224 @@ ut.setMPL()
 
 DEFAULT_OUTPUT_DIR = "C:\\Users\\lucca\\Desktop\\GeneratedOutput"
 
+def plot_cells_grid(data_dirs, num_snapshots=5,director=False, defects=False, output_dir=DEFAULT_OUTPUT_DIR):
+    if type(data_dirs) == str:
+        num_repeats = 1
+        data_dirs = [data_dirs]
+    
+    else:
+        data_dirs = list(data_dirs)
+        num_repeats = len(data_dirs)
+
+    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(num_snapshots*2, 2* num_repeats),
+                             constrained_layout=True, facecolor='w')
+    
+    initial_time= 0
+
+    for r, data_dir in enumerate(data_dirs):
+        file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+        files = sorted(glob.glob(file_pattern))
+        if len(files) < num_snapshots:
+            selected_files = files
+        else:
+            selected_indices = np.linspace(initial_time, len(files) - 1, num_snapshots, dtype=int)
+            selected_files = [files[i] for i in selected_indices]
+
+
+            # # Let's take 4 snapshots spaced by len(files) // 4
+            # selected_indices = [5]  # start from the beginning (or you can use 1 if you want to skip t=0)
+
+            # # Add 3 more points evenly spaced
+            # quarter = len(files) // 4
+            # selected_indices += [quarter, 2 * quarter, 3 * quarter]
+
+            # Get corresponding files
+            selected_files = [files[i] for i in selected_indices]
+        if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
+            for c, (ax, file) in enumerate(zip(axes, selected_files)):
+                dfunc.plotCells(ax, file, director,defects)
+                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
+                if match:
+                    frame_number = int(match.group(1))
+                    time_hours = frame_number * 0.1
+                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+        else:
+            for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
+                dfunc.plotCells(ax, file, director, defects)
+                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
+                if match:
+                    frame_number = int(match.group(1))
+                    time_hours = frame_number * 0.1
+                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+            axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
+
+
+    os.makedirs(output_dir, exist_ok=True)
+    output_path_pdf = os.path.join(output_dir, f"snapshots.pdf")
+
+    fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
+    print(f"Saved snapshot grid to: {output_path_pdf}")
+    plt.show()
+
+def plot_cells_com(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
+    if type(data_dirs) == str:
+        num_repeats = 1
+        data_dirs = [data_dirs]
+    
+    else:
+        data_dirs = list(data_dirs)
+        num_repeats = len(data_dirs)
+
+    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(10, 2* num_repeats),
+                             constrained_layout=True, facecolor='w')
+
+    for r, data_dir in enumerate(data_dirs):
+        file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+        files = sorted(glob.glob(file_pattern))
+        if len(files) < num_snapshots:
+            selected_files = files
+        else:
+            selected_indices = np.linspace(0, len(files) - 1, num_snapshots, dtype=int)
+            selected_files = [files[i] for i in selected_indices]
+
+
+            # # Let's take 4 snapshots spaced by len(files) // 4
+            # selected_indices = [5]  # start from the beginning (or you can use 1 if you want to skip t=0)
+
+            # # Add 3 more points evenly spaced
+            # quarter = len(files) // 4
+            # selected_indices += [quarter, 2 * quarter, 3 * quarter]
+
+            # Get corresponding files
+            selected_files = [files[i] for i in selected_indices]
+        if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
+            for c, (ax, file) in enumerate(zip(axes, selected_files)):
+                dfunc.plotCellsCOM(ax, file)
+                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
+                if match:
+                    frame_number = int(match.group(1))
+                    time_hours = frame_number * 0.1
+                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+        else:
+            for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
+                dfunc.plotCellsCOM(ax, file)
+                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
+                if match:
+                    frame_number = int(match.group(1))
+                    time_hours = frame_number * 0.1
+                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+            axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
+
+
+    os.makedirs(output_dir, exist_ok=True)
+    output_path_pdf = os.path.join(output_dir, f"snapshots.pdf")
+
+    fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
+    print(f"Saved snapshot grid + com to: {output_path_pdf}")
+    plt.show()
+
+def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR,defects=False):
+    fig, axes = plt.subplots(1, 1, figsize=(15, 3),
+                             constrained_layout=True, facecolor='w')
+    
+    Lambdas = list(dfunc.plotCells(axes, file_path, defects))
+
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    axes.legend(handles=legend_elements)
+
+    plt.tight_layout()
+    
+
+    parts = os.path.normpath(file_path).split(os.sep)
+    tag = "_".join(parts[-2:])
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"avg_counts_{tag}.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved snapshot grid to: {save_path}")
+    plt.show()
+
+def snapshot_director(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    n_dirs = len(data_dirs)
+    fig, axes = plt.subplots(n_dirs, 1, figsize=(3,3*n_dirs),
+                             constrained_layout=True, facecolor='w')
+    i=0
+    for data_dir in data_dirs:
+        files = np.asarray(pfunc.get_file_paths(data_dir))
+        filepath = files[-1]
+        print(filepath)
+        Lambdas = list(dfunc.plotCells(axes[i], filepath, director=True))
+        i +=1
+
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    #axes.legend(handles=legend_elements)
+
+    plt.tight_layout()
+    
+
+    parts = os.path.normpath(data_dirs[0]).split(os.sep)
+    tag = "_".join(parts[-2:])
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"director_snapshots_{tag}.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved snapshot with directors to: {save_path}")
+    plt.show()
+
+def snapshot_defects(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    n_dirs = len(data_dirs)
+    fig, axes = plt.subplots(n_dirs, 1, figsize=(3,3*n_dirs),
+                             constrained_layout=True, facecolor='w')
+    i=0
+    for data_dir in data_dirs:
+        files = np.asarray(pfunc.get_file_paths(data_dir))
+        filepath = files[-1]
+        print(filepath)
+        Lambdas = list(dfunc.plotCells(axes[i], filepath, defects=True))
+        i +=1
+
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    #axes.legend(handles=legend_elements)
+
+    plt.tight_layout()
+    
+
+    parts = os.path.normpath(data_dirs[0]).split(os.sep)
+    tag = "_".join(parts[-2:])
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"director_snapshots_{tag}.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved snapshot with directors to: {save_path}")
+    plt.show()
+
+def plot_aspect_ratio_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    for data_dir in data_dirs:
+            time_steps, aspect_ratio = dfunc.calc_aspect_ratio(data_dir)
+            plt.plot(time_steps, aspect_ratio, color="k")
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("Aspect ratio")
+    plt.tight_layout()
+
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"asp_ratio.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved aspect ratio plot to: {save_path}")
+    plt.show()
+
 def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
 
@@ -48,7 +266,7 @@ def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.xlabel("Time (h)")
     plt.ylabel("Cell/Segment Count")
-    plt.yscale("log")
+    #plt.yscale("log")
     plt.tight_layout()
 
 
@@ -58,125 +276,6 @@ def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved cell count plot to: {save_path}")
     plt.show()
-
-def plot_cells_grid(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
-    #repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
-    #num_repeats = len(repeat_dirs)
-    if type(data_dirs) == str:
-        num_repeats = 1
-        data_dirs = [data_dirs]
-    
-    else:
-        data_dirs = list(data_dirs)
-        num_repeats = len(data_dirs)
-
-    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(10, 2* num_repeats),
-                             constrained_layout=True, facecolor='w')
-
-    for r, data_dir in enumerate(data_dirs):
-        file_pattern = os.path.join(data_dir, "biofilm_*.dat")
-        files = sorted(glob.glob(file_pattern))
-        if len(files) < num_snapshots:
-            selected_files = files
-        else:
-            selected_indices = np.linspace(0, len(files) - 1, num_snapshots, dtype=int)
-            selected_files = [files[i] for i in selected_indices]
-
-
-            # # Let's take 4 snapshots spaced by len(files) // 4
-            # selected_indices = [5]  # start from the beginning (or you can use 1 if you want to skip t=0)
-
-            # # Add 3 more points evenly spaced
-            # quarter = len(files) // 4
-            # selected_indices += [quarter, 2 * quarter, 3 * quarter]
-
-            # Get corresponding files
-            selected_files = [files[i] for i in selected_indices]
-        if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
-            for c, (ax, file) in enumerate(zip(axes, selected_files)):
-                dfunc.plotCells(ax, file)
-                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
-                if match:
-                    frame_number = int(match.group(1))
-                    time_hours = frame_number * 0.1
-                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
-        else:
-            for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
-                dfunc.plotCells(ax, file)
-                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
-                if match:
-                    frame_number = int(match.group(1))
-                    time_hours = frame_number * 0.1
-                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
-            axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
-
-
-    os.makedirs(output_dir, exist_ok=True)
-    output_path_pdf = os.path.join(output_dir, f"snapshots.pdf")
-
-    fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
-    print(f"Saved snapshot grid to: {output_path_pdf}")
-    plt.show()
-
-def plot_channels(data_dirs, num_snapshots=5,width=120, output_dir=DEFAULT_OUTPUT_DIR):
-    #repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
-    #num_repeats = len(repeat_dirs)
-    if type(data_dirs) == str:
-        num_repeats = 1
-        data_dirs = [data_dirs]
-    
-    else:
-        data_dirs = list(data_dirs)
-        num_repeats = len(data_dirs)
-
-    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(10, 2* num_repeats),
-                             constrained_layout=True, facecolor='w')
-
-    for r, data_dir in enumerate(data_dirs):
-        file_pattern = os.path.join(data_dir, "biofilm_*.dat")
-        files = sorted(glob.glob(file_pattern))
-        if len(files) < num_snapshots:
-            selected_files = files
-        else:
-            selected_indices = np.linspace(0, len(files) - 1, num_snapshots, dtype=int)
-            selected_files = [files[i] for i in selected_indices]
-
-
-            # # Let's take 4 snapshots spaced by len(files) // 4
-            # selected_indices = [5]  # start from the beginning (or you can use 1 if you want to skip t=0)
-
-            # # Add 3 more points evenly spaced
-            # quarter = len(files) // 4
-            # selected_indices += [quarter, 2 * quarter, 3 * quarter]
-
-            # Get corresponding files
-            selected_files = [files[i] for i in selected_indices]
-        if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
-            for c, (ax, file) in enumerate(zip(axes, selected_files)):
-                dfunc.plotCells_channel(ax, file, width)
-                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
-                if match:
-                    frame_number = int(match.group(1))
-                    time_hours = frame_number * 0.1
-                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
-        else:
-            for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
-                dfunc.plotCells_channel(ax, file, width)
-                match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
-                if match:
-                    frame_number = int(match.group(1))
-                    time_hours = frame_number * 0.1
-                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
-            axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
-
-
-    os.makedirs(output_dir, exist_ok=True)
-    output_path_pdf = os.path.join(output_dir, f"channel_snapshot.pdf")
-
-    fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
-    print(f"Saved channel snapshot grid to: {output_path_pdf}")
-    plt.show()
-
 
 def plot_Rg_over_time(data_dirs, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
@@ -207,27 +306,6 @@ def plot_Rg_over_time(data_dirs, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved Rg plot to: {save_path}")
-    plt.show()
-
-def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR):
-    fig, axes = plt.subplots(1, 1, figsize=(15, 3),
-                             constrained_layout=True, facecolor='w')
-    
-    Lambdas = list(dfunc.plotCells(axes, file_path))
-    legend_elements = []
-    for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
-    axes.legend(handles=legend_elements)
-
-    plt.tight_layout()
-    
-
-    parts = os.path.normpath(file_path).split(os.sep)
-    tag = "_".join(parts[-2:])
-    os.makedirs(output_dir, exist_ok=True)
-    save_path = os.path.join(output_dir, f"avg_counts_{tag}.pdf")
-    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
-    print(f"Saved snapshot grid to: {save_path}")
     plt.show()
 
 def plot_growth_rate(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
@@ -378,7 +456,6 @@ def plot_pressure_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved pressure plot to: {save_path}")
     plt.show()
 
-
 def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
 
@@ -402,8 +479,9 @@ def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
             legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
     plt.legend(handles=legend_elements)
 
-    plt.xlabel("Time (h)")
-    plt.ylabel("x-Position of COM (microns)")
+    plt.xlabel("$t-t_{collision}$ (h)")
+    plt.ylabel(r"$log[\vec r_{COM} - \vec r_{0}]$")
+    plt.yscale("log")
     plt.tight_layout()
 
 
@@ -412,6 +490,71 @@ def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved COM movement plot to: {save_path}")
+    plt.show()
+
+def plot_IQ(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+
+    for data_dir in data_dirs:
+        Lambdas += list(pfunc.plot_IQ_time(data_dir))
+    
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    if len(Lambdas)==1:
+        legend_elements = [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambdas[0]),label='$\Lambda =$'+str(Lambdas[0])) ]
+    else:
+        legend_elements.append(Line2D([0], [0], color='k',linestyle="--",label='Total'))
+        for Lambda in Lambdas:
+            legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$IQ$")
+    plt.tight_layout()
+
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"IQ.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved IQ plot to: {save_path}")
+    plt.show()
+
+def plot_surface_fraction_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas = []
+
+    for data_dir in data_dirs:
+        print(data_dir)
+        Lambdas += list(pfunc.surface_fraction_time(data_dir))
+    
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time after collision (h)")
+    plt.ylabel("fraction of cells occupying surface")
+    plt.tight_layout()
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"com_movement.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved surface fraction plot to: {save_path}")
     plt.show()
 
 
@@ -596,8 +739,9 @@ def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
         legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
     plt.legend(handles=legend_elements)
 
-    plt.xlabel("Time (h)")
-    plt.ylabel("$<x_{COM}>$ (microns)")
+    plt.xlabel("$t-t_{collision}$ (h)")
+    plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
+    plt.yscale("log")
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"average_xCOM.pdf")
@@ -605,6 +749,72 @@ def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved average xCOM plot to: {save_path}")
     plt.show()
+
+def average_IQ_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.plot_average_COM(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("Time (h)")
+    plt.ylabel("$<x_{COM}-x_{0}>$ (microns)")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_xCOM.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average xCOM plot to: {save_path}")
+    plt.show()
+
+
+def average_COM_ratio(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    for data_dirs in dirs_averaged:
+        pfunc.plot_average_COM_ratio(data_dirs)
+
+    legend_elements = [mpatches.Patch(facecolor=dfunc.colour_Lambda(1.0),label='$\Lambda_1/\Lambda_2 =$'+str(1.0)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(1.5),label='$\Lambda_1/\Lambda_2 =$'+str(1.5)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(2.0),label='$\Lambda_1/\Lambda_2 =$'+str(2.0)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(5.0),label='$\Lambda_1/\Lambda_2 =$'+str(5.0)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(10.0),label='$\Lambda_1/\Lambda_2 =$'+str(10.0))]
+    legend_elements.append(Line2D([0], [0], color='k',linestyle="-",label='$\Lambda_1$'))
+    legend_elements.append(Line2D([0], [0], color='k',linestyle="--",label='$\Lambda_2$'))
+
+    
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("$t-t_{collision}$ (h)")
+    plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
+    plt.yscale("log")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_xCOM.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average xCOM plot to: {save_path}")
+    plt.show()
+
 
 def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
@@ -675,8 +885,6 @@ def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     plt.show()
 #FIX THIS ONE!!!!
 
-
-
 def plot_t_doub_Lambda_av(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR, lines=False):
     """
     This function should have as input a LIST containing LISTS of the
@@ -716,10 +924,74 @@ def plot_t_doub_Lambda_av(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR, lines=Fa
     print(f"Saved tdoub vs lambda plot to: {save_path}")
     plt.show()
 
+def plot_fraction_y(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
 
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
 
+    Lambdas = []
+    timestep = 110 #timestep to consider!
 
+    for data_dir in data_dirs:
+        files = pfunc.get_file_paths(data_dir)
+        filepath = files[-1]
+        print(filepath)
+        Lambdas = Lambdas + list(pfunc.plot_yfraction(filepath))
+        #for filepath in files:
+            #if str(timestep) in filepath:
+                #Lambdas = Lambdas + list(pfunc.plot_yfraction(filepath))
+                #print(filepath)
 
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+
+    plt.legend(handles=legend_elements)
+    plt.xlabel("y position (microns)")
+    plt.ylabel(r"fraction of cells")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"fraction_y.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved fraction over colony plot to: {save_path}")
+    plt.show()
+
+def plot_yfraction_repeats(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.yfraction_repeats(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = [Line2D([0], [0], color='k',linestyle="--",label='$\Lambda_1$')]
+    for Lambda in Lambdas:
+        if Lambda == 1.0:
+            continue
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    plt.xlabel("y position (microns)")
+    plt.ylabel("fraction of cells")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"frac_ytotal.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved fraction vs position plot to: {save_path}")
+    plt.show()
 
 def main():
     parser = argparse.ArgumentParser(description="Automated plotting script for biofilm simulation data")

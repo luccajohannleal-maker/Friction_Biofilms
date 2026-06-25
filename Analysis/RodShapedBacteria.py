@@ -9,6 +9,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Wedge
 from shapely.geometry import Polygon,Point
 from shapely.ops import unary_union
+from scipy.ndimage import gaussian_filter
 
 # third party
 from tqdm import tqdm
@@ -683,7 +684,6 @@ class RodShapedBacterium(object):
         try:
             Q=np.load(fname)
         except Exception as e:
-            print(e)
             grid_coords = np.array([xv.flatten(),yv.flatten()]).T
 
             #------------------ Find cell neighbours on grid ----------------------
@@ -691,20 +691,16 @@ class RodShapedBacterium(object):
 
             #------------------------- Find Q on grid ------------------------------
             Q_grid = np.zeros((ny*nx,2,2))
-
-            print("Launch threads")
             set_num_threads(10)
             findQGrid(nat_result,cell_data,Q_grid,grid_coords,
                       RodShapedBacterium.smoothCutOff
                       )
-
             Q=Q_grid.reshape((ny,nx,2,2))
             np.save(fname,Q)
 
         #--------------- Try to compute q with central derivatives -------------
         # Only calculate on the inner grid for now
         q = np.zeros((ny,nx))
-        print("finding q")
         Q_dx = np.gradient(Q,axis=0,edge_order=2)
         Q_dy = np.gradient(Q,axis=1,edge_order=2)
         q = (Q_dx[:,:,0,0]*Q_dy[:,:,0,1]-Q_dx[:,:,0,1]*Q_dy[:,:,0,0])/(2*np.pi)

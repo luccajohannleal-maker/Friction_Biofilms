@@ -30,6 +30,8 @@ def Lambda_status_to_color(cell):
         return "#1e00ff"
     elif Lambda == 10.001:
         return "#4f7a55"
+    elif Lambda == 5.001:
+        return "#4c564d"
     elif Lambda < 1.0:
         return (Lambda, 0, 0, 1)
     elif Lambda > 1.0:

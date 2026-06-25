@@ -151,7 +151,7 @@ def computeColonyContourHoles(cells):
         out_contour=cell_repr
     return out_contour
 
-def computeColonyContour(cells,add_links=True,ret_gon=False):
+def computeColonyContour(cells,add_links=False,ret_gon=False):
     """
         Find the colony outer colony (if one exists)
 
