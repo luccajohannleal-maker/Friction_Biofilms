@@ -479,9 +479,10 @@ def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
             legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
     plt.legend(handles=legend_elements)
 
-    plt.xlabel("$t-t_{collision}$ (h)")
+    plt.xlabel("$log[t-t_{collision}]$")
     plt.ylabel(r"$log[\vec r_{COM} - \vec r_{0}]$")
     plt.yscale("log")
+    plt.xscale("log")
     plt.tight_layout()
 
 
@@ -719,7 +720,7 @@ def average_dasph_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved average delta asphericity plot to: {save_path}")
     plt.show()
 
-def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR,log=False):
     """
     This function should have as input a LIST containing LISTS of the
     directories to be average and plotted at the same time
@@ -739,9 +740,15 @@ def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
         legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
     plt.legend(handles=legend_elements)
 
-    plt.xlabel("$t-t_{collision}$ (h)")
-    plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
-    plt.yscale("log")
+    if log:
+        plt.xlabel("$log[t-t_{collision}]$")
+        plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
+        plt.yscale("log")
+        plt.xscale("log")
+    else:
+        plt.xlabel("$t-t_{collision}$")
+        plt.ylabel(r"$<\vec r_{COM} - \vec r_{0}>$")
+
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"average_xCOM.pdf")
@@ -749,6 +756,42 @@ def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved average xCOM plot to: {save_path}")
     plt.show()
+
+def average_COM_Ncells(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR,log=False):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.average_COM_N(data_dirs)) 
+
+    Lambdas = set(Lambdas)
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label='$\Lambda =$'+str(Lambda)) ]
+    plt.legend(handles=legend_elements)
+
+    if log:
+        plt.yscale("log")
+        plt.xscale("log")
+
+    plt.xlabel("$N_{cells}$")
+    plt.ylabel(r"$\vec r_{COM} - \vec r_{0}$")
+
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_xCOM.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average xCOM plot to: {save_path}")
+    plt.show()
+
 
 def average_IQ_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     """
@@ -804,9 +847,10 @@ def average_COM_ratio(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     
     plt.legend(handles=legend_elements)
 
-    plt.xlabel("$t-t_{collision}$ (h)")
+    plt.xlabel("$log[t-t_{collision}]$")
     plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
     plt.yscale("log")
+    plt.xscale("log")
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"average_xCOM.pdf")
@@ -814,7 +858,6 @@ def average_COM_ratio(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved average xCOM plot to: {save_path}")
     plt.show()
-
 
 def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))

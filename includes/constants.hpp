@@ -64,6 +64,10 @@ namespace constants
   inline constexpr double baseZeta{ 200 }; // drag coefficient (lower drag coefficient) in Pa h 
   inline constexpr double width{60.0}; //width of channel the bacteria are confined to
 
+  inline constexpr double Lambda1{1.0}; //width of channel the bacteria are confined to
+  inline constexpr double Lambda2{10.0}; //width of channel the bacteria are confined to
+  
+
 
   // -------------------------- Chaining -------------------------------
 

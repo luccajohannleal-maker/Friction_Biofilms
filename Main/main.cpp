@@ -130,11 +130,11 @@ std::vector<IBacterium*> initialiseBiofilm(
                     -constants::width*1.5/2 + 1, y, 0,  //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
-                    RodShapedBacterium::mAvgGrwthRate, // Type A growth rate
+                    RodShapedBacterium::mAvgGrwthRate/constants::Lambda1, // Type A growth rate
                     4, // Type A initial length
                     0, // non-chaining, 1 for chaining
                     0.5, //radius of the cell
-                    1 // Lambda 1 for standard drag
+                    constants::Lambda1 // Lambda 1 for standard drag
                 };
                 initial_conditions.push_back(rod);
                 numTypeA--;
@@ -144,11 +144,11 @@ std::vector<IBacterium*> initialiseBiofilm(
                     -(-constants::width*1.5/2 + 1), y, 0, //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
-                    RodShapedBacterium::mAvgGrwthRate, // Type B growth rate
+                    RodShapedBacterium::mAvgGrwthRate/constants::Lambda2, // Type B growth rate
                     4, // Type B initial length
                     0, // non-chaining, 1 for chaining
                     0.5, //radius of the cell
-                    5 // Lambda > 1 for higher drag , for base drag = 1
+                    constants::Lambda2 // Lambda > 1 for higher drag , for base drag = 1
                 };
                 initial_conditions.push_back(rod);
                 numTypeB--;
@@ -327,8 +327,8 @@ int main(int argc, char const *argv[])
 
   sim_out_dir += "/" + run_dir + "/";
   ///////------------------------------
-  int numTypeA = 5;      // Number of TypeA (lambda = 1)
-  int numTypeB = 5;      // Number of TypeB (lambda != 1)
+  int numTypeA = 1;      // Number of TypeA (lambda = 1)
+  int numTypeB = 1;      // Number of TypeB (lambda != 1)
   ////----------------------------------
   double centerX = 0.0;   // Shared center X for mixed distribution
   double centerY = 75.0;   // Shared center Y for mixed distribution

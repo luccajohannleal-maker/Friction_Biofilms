@@ -253,8 +253,8 @@ def colonies_collided(files):
     t_est = round(1.2*d0/growth_rate,1) # estimated collision time
     t = t_est[1] 
 
-    if t < 3.0: #impose a minimum of t_est > 3, prior there is too much variation
-        t = 3.0
+    if t < 3: #impose a minimum of t_est > 3, prior there is too much variation
+        t = 3
     print(t)
 
 
@@ -373,9 +373,6 @@ def surface_fraction(data_dir):
 
         frac1.append(count1/(count1+count2))
         frac2.append(count2/(count1+count2))
-
-
-        
 
         """if ax != None:
             cx = contour[:,0]
@@ -820,6 +817,23 @@ def doubling_linear_growth(t, t_doub, N0):
         return N0 + t/t_doub
 def doubling_exp_growth(t, t_doub):
         return  2**(t/t_doub)
+def linear_exp(t,x):
+    return (t)**x
+
+def find_scaling_law(xdata,ydata):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    popt, pcov= curve_fit(linear_exp, xdata, ydata)
+
+    return popt,np.sqrt(np.diag(pcov))
 
 def estimate_exp_growth_rate(counts, time_step=0.1):
     """

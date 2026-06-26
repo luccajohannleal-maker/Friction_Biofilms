@@ -615,13 +615,12 @@ def plot_average_COM(data_dirs):
 
         # Track the longest time sequence
         if len(time_steps) > max_len:
-            time = time_steps
+            time = np.asarray(time_steps)
             max_len = len(time_steps)
     Lam = np.unique(Lam)
     com_1 = []
     com_2 = []
     com_tot = []
-    
 
     if len(Lambdas) != 1:
 
@@ -644,12 +643,22 @@ def plot_average_COM(data_dirs):
         com_1 = np.asarray(com_1)
         avg1 = np.nanmean(com_1, axis=0)
         std1 =np.nanstd(com_1, axis=0)/(np.sqrt(com_1.shape[0]))
-        plt.errorbar(time, avg1,yerr=std1, color=dfunc.colour_Lambda(Lam[0]))
+        plt.errorbar(time, avg1,yerr=std1,fmt=".", color=dfunc.colour_Lambda(Lam[0]))
+        par,err = dfunc.find_scaling_law(avg1)
+        fit1 = dfunc.linear_exp(time,*par)
+        print(f"Lambda = {Lam[0]}, R =({par[0]}+-{err[0]})+ ({par[1]}+-{err[1]})*t^({par[2]}+-{err[2]})")
+        #print(f"Lambda = {Lam[0]}, R = e^t/({par}+-{err})")
+        plt.plot(time,fit1,color=dfunc.colour_Lambda(Lam[0]))
 
         com_2 = np.asarray(com_2)
         avg2 = np.nanmean(com_2, axis=0)
         std2 =np.nanstd(com_2, axis=0)/(np.sqrt(com_2.shape[0]))
-        plt.errorbar(time, avg2,yerr=std2, color=dfunc.colour_Lambda(Lam[1]))
+        plt.errorbar(time, avg2,yerr=std2,fmt=".", color=dfunc.colour_Lambda(Lam[1]))
+        par,err = dfunc.find_scaling_law(avg2)
+        fit2 = dfunc.linear_exp(time,*par)
+        plt.plot(time,fit2,color=dfunc.colour_Lambda(Lam[1]))
+        print(f"Lambda = {Lam[1]}, R =({par[0]}+-{err[0]})+ ({par[1]}+-{err[1]})*t^({par[2]}+-{err[2]})")
+        #print(f"Lambda = {Lam[1]}, R = e^t/({par}+-{err})")
         
     else:
         for item in rawtot:
@@ -803,6 +812,86 @@ def plot_average_IQ_time(data_dirs):
         plt.errorbar(time, avg_Asph2,fmt= 'o',yerr=err_Asph2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
 
     return Lam
+
+
+def average_COM_N(data_dirs):
+    n_colony1 = []
+    n_colony2 = []
+    com_colony1 = []
+    com_colony2 = []
+
+    Lam = []
+
+    # 1. Collect raw data and find the longest timeline
+    for data_dir in data_dirs:
+        files = get_file_paths(data_dir)
+
+        time_steps = []
+
+        com1 = [] 
+        com2 = []
+        t_collision = dfunc.colonies_collided(files) #finds time when colonies collide
+
+        i=0
+        for file_path in files:
+            if i==0: #registers initial COM to take away so that cells are centered
+                df = pd.read_csv(file_path, sep="\t")
+                Lambdas = sorted(dfunc.find_Lambdas(df))
+    
+                if len(Lambdas) != 1:
+                    xi1,yi1,zi1= dfunc.centerBiofilm(dfunc.find_Lambda_cells(df,Lambdas[0]))
+                    xi2,yi2,zi2= dfunc.centerBiofilm(dfunc.find_Lambda_cells(df,Lambdas[1]))
+                    
+            match = re.search(r'(\d+)', os.path.basename(file_path))
+            if not match:
+                continue
+            time_step = int(match.group(1))
+
+            if time_step < int(10*t_collision):
+                continue
+            i+=1
+
+            df = pd.read_csv(file_path, sep="\t")
+
+            df1=dfunc.find_Lambda_cells(df,Lambda=Lambdas[0])
+            x1,y1,z1= dfunc.centerBiofilm(df1)
+            com1.append(np.sqrt((x1-xi1)**2 + (y1-yi1)**2))
+
+            df2=dfunc.find_Lambda_cells(df,Lambda=Lambdas[1])
+            x2,y2,z2= dfunc.centerBiofilm(df2)
+            com2.append(np.sqrt((x2-xi2)**2 + (y2-yi2)**2))
+
+
+        time_steps, Lambda1_counts, Lambda2_counts, Lambdas = dfunc.counts(data_dir)
+        n_colony1 = n_colony1+Lambda1_counts[int(t_collision*10):]
+        n_colony2 = n_colony2+Lambda2_counts[int(t_collision*10):]
+        Lambdas = sorted(Lambdas)
+
+        com_colony1 = com_colony1 + com1
+        com_colony2 = com_colony2 + com2
+
+        Lam.append(Lambdas)
+    colony1 = np.asarray([np.asarray(n_colony1),np.asarray(com_colony1)])
+    colony2 = np.asarray([np.asarray(n_colony2),np.asarray(com_colony2)])
+
+    Lam = np.unique(Lam)
+
+    n1 = np.geomspace(40,colony1[0,:].max(),1000)
+    par,err = dfunc.find_scaling_law(colony1[0,:],colony1[1,:])
+    fit1 = dfunc.linear_exp(n1,*par)
+    print(f"Lambda = {Lam[0]}, R =N^({par}+-{err})")
+    plt.scatter(colony1[0,:],colony1[1,:],marker=".",color = dfunc.colour_Lambda(Lam[0]),alpha=0.5)
+    plt.plot(n1,fit1,color = dfunc.colour_Lambda(Lam[0]))
+
+    n2 = np.geomspace(40,colony1[0,:].max(),1000)
+    par,err = dfunc.find_scaling_law(colony2[0,:],colony2[1,:])
+    fit2 = dfunc.linear_exp(n2,*par)
+    print(f"Lambda = {Lam[1]}, R =N^({par}+-{err})")
+    plt.scatter(colony2[0,:],colony2[1,:],marker=".",color = dfunc.colour_Lambda(Lam[1]))
+    plt.plot(n2,fit2,color = dfunc.colour_Lambda(Lam[1]))
+
+    return Lambdas
+
 
 #fancier plots
 def t_doub_Lambda(data_dirs):

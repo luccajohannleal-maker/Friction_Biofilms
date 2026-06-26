@@ -199,8 +199,8 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
 #endif
 
     gen_rand.getUniformRand(
-      mAvgGrwthRate*0.5,
-      mAvgGrwthRate*1.5
+      mAvgGrwthRate*0.5/Lambda,
+      mAvgGrwthRate*1.5/Lambda
     ),
     0.5*(mAvgDivLen-2*mRadius),
     mLinkingProb,mRadius, Lambda
@@ -219,8 +219,8 @@ void RodShapedBacterium::divide(std::vector<IBacterium*>& cell_list)
                               mAngles.y+1e-3*constants::pi),
 #endif
       gen_rand.getUniformRand(
-        mAvgGrwthRate*0.5,
-        mAvgGrwthRate*1.5
+        mAvgGrwthRate*0.5/Lambda,
+        mAvgGrwthRate*1.5/Lambda
       ),
       0.5*(mAvgDivLen-2*mRadius),
        mLinkingProb, mRadius, Lambda
