@@ -46,10 +46,10 @@ std::vector<IBacterium*> initialiseBiofilm(
     std::srand(std::time(0));
 
     // Define wall constraints scaled by the diameter of PA Bacteria
-    double xMin = -constants::width/2 + 1; 
-    double xMax = constants::width/2 - 1;
-    double yMax = constants::width/2 - 1;
-    double yMin= -constants::width/2 + 1;
+    double xMin = -constants::width/2 + 2.5; 
+    double xMax = constants::width/2 - 2.5;
+    double yMax = constants::width/2 - 2.5;
+    double yMin= -constants::width/2 + 2.5;
     double normDistance = 4.5; // Minimum spacing
     double maxRadius = 10; // Max spread distance from center
     int maxAttempts = 1000; // Limit placement retries
@@ -127,7 +127,7 @@ std::vector<IBacterium*> initialiseBiofilm(
     
             if (isTypeA) {
                 auto* rod = new RodShapedBacterium{
-                    -constants::width*1.5/2 + 1, y, 0,  //random position x, y, z (in 2D z=0)
+                    x, y, 0,  //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
                     RodShapedBacterium::mAvgGrwthRate/constants::Lambda1, // Type A growth rate
@@ -141,7 +141,7 @@ std::vector<IBacterium*> initialiseBiofilm(
             } 
             else if (isTypeB) {
                 auto* rod = new RodShapedBacterium{
-                    -(-constants::width*1.5/2 + 1), y, 0, //random position x, y, z (in 2D z=0)
+                    x, y, 0, //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
                     RodShapedBacterium::mAvgGrwthRate/constants::Lambda2, // Type B growth rate

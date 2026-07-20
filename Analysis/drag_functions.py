@@ -8,6 +8,7 @@ import os
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 
+
 from DistributionFunctions import computeColonyContour
 from scipy.optimize import curve_fit
 from generalPlotting import addNematicDirector
@@ -112,7 +113,7 @@ def plotCellsCOM(ax, file):
         ax.axis('scaled')
         ax.axis('off')
 
-def plotCells_channel(ax, file, width=120):
+def plotCells_channel(ax, file, width=40):
         dat = pd.read_csv(file, sep='\t')
         cells = ut.getCells(file)
         x_center,y_center = 0, 0
@@ -130,6 +131,8 @@ def plotCells_channel(ax, file, width=120):
         else:
             X = Y
             minx, maxx = X_c - 0.5 * X, X_c + 0.5 * X
+        
+        cells = remove_out_channel(cells,width)
 
         fcp.addAllCellsToPlot(cells, ax, ax_rng=maxx - minx, show_id=False, ec='w')
 
@@ -147,6 +150,8 @@ def plotCells_channel(ax, file, width=120):
         ax.set_ylim([-5, 160])
         ax.axis('scaled')
         ax.axis('off')
+
+
 
 def centerBiofilm(cells):
     """
@@ -250,37 +255,93 @@ def colonies_collided(files):
     Lambdas = sorted(find_Lambdas(cdat))
     d0 = np.sqrt(cdat["pos_x"].diff()**2 +cdat["pos_y"].diff()**2)
 
-    t_est = round(1.2*d0/growth_rate,1) # estimated collision time
+    t_est = round(d0/growth_rate,1) # estimated collision time
     t = t_est[1] 
 
-    if t < 3: #impose a minimum of t_est > 3, prior there is too much variation
+    """if t < 3: #impose a minimum of t_est > 3, prior there is too much variation
         t = 3
-    print(t)
+    print(t)"""
 
+    collision_detection ="contour" #"position" or "perimeter"
 
     for file in files[int(t*10):]:
         t+=0.1
 
         cells = ut.getCells(file) #easier to loop through
-        cells1 = find_Lambda_cells(cells,Lambdas[0])
+        cells = centerCells(cells)
 
+        cells1 = find_Lambda_cells(cells,Lambdas[0])
         dat = pd.read_csv(file, sep='\t') # easier to calculate position differences
         cells2 = find_Lambda_cells(dat,Lambdas[1])
         ypos2 = cells2["pos_y"]
         xpos2 = cells2["pos_x"]
 
+        if collision_detection == "cells":
+            for cell in cells1:
+                d_point = np.sqrt((cell.pos_x-xpos2)**2 + (cell.pos_y-ypos2)**2)
+                if np.sum(d_point < 2) > 1:
+                    return t
+                
+        elif collision_detection =="contour": #when colonies interact, perimeter increases a lot
+            contour = computeColonyContour(cells1)
+            for position in contour:
+                d_point = np.sqrt((position[0]-xpos2)**2 + (position[1]-ypos2)**2)
+                if np.sum(d_point < 1.75) !=0:
+                    #print(t)
+                    return t
+        else:
+            print("please set the algorythm to either cells or contour")
+
+def remove_out_channel(cells,width=60):
+    if type(cells) == pd.DataFrame:
+        cells = cells[abs(cells["pos_y"]) < (width/2)]
+    elif type(cells) == list:
+    
+        cells1 = cells
         for cell in cells1:
-            d_point = np.sqrt((cell.pos_x-xpos2)**2 + (cell.pos_y-ypos2)**2)
-            if np.sum(d_point < 1.5) != 0:
-                return t
+            if abs(cell.pos_y) > (width/2):
+                cells.remove(cell)
+    return cells
+
+def average_length(cells):
+    if type(cells) == pd.DataFrame:
+        l_av = cells["length"].mean()
+    
+    elif type(cells) == list:
+        l_av = np.mean([cell.length for cell in cells])
+    return l_av
+
 
 
 def distance_from_origin(cells):
-    cells = centerCells(cells)
-    dist=[]
-    for cell in cells:
-        dist.append(np.sqrt(cell.pos_x**2 + cell.pos_y**2 + cell.pos_z**2))
-    return dist
+    if type(cells) == pd.DataFrame:
+        cells = centerCells(cells)
+        x = cells["pos_x"]
+        y = cells["pos_y"]
+        z = cells["pos_z"]
+        distance = np.sqrt(x**2 + y**2 + z**2)
+    
+    elif type(cells) == list:
+        cells = centerCells(cells)
+        distance=[]
+        for cell in cells:
+            distance.append(np.sqrt(cell.pos_x**2 + cell.pos_y**2 + cell.pos_z**2))
+    return distance
+
+def distance_from_point(cells,point=[0,0,0]):
+    if type(cells) == pd.DataFrame:
+        cells = centerCells(cells)
+        x = cells["pos_x"] - point[0]
+        y = cells["pos_y"] - point[1]
+        z = cells["pos_z"] - point[2]
+        distance = np.sqrt(x**2 + y**2 + z**2)
+    
+    elif type(cells) == list:
+        cells = centerCells(cells)
+        distance=[]
+        for cell in cells:
+            distance.append(np.sqrt((cell.pos_x - point[0])**2 + (cell.pos_y - point[1])**2 + (cell.pos_z - point[2])**2))
+    return distance
 
 def calc_perimeter_area(cells):
     positions = computeColonyContour(cells)
@@ -305,10 +366,12 @@ def perimeter_area_time(data_dir):
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
     time_steps = []
 
+    ptot = []
     perimeter1 = []
     area1 = []
     perimeter2 = []
     area2 = []
+    atot = []
 
     for file_path in files:
         match = re.search(r'(\d+)', os.path.basename(file_path))
@@ -317,6 +380,11 @@ def perimeter_area_time(data_dir):
         
         time_step = int(match.group(1))
         cells = ut.getCells(file_path)
+        p,a = calc_perimeter_area(cells)
+        ptot.append(p)
+        atot.append(a)
+
+
         Lambdas = find_Lambdas(cells)
         cells1 =find_Lambda_cells(cells,Lambdas[0])
 
@@ -331,7 +399,7 @@ def perimeter_area_time(data_dir):
             perimeter2.append(p)
             area2.append(a)
 
-    return time_steps, perimeter1, perimeter2, area1, area2, Lambdas
+    return time_steps, perimeter1, perimeter2, ptot, area1, area2,atot, Lambdas
 
 def surface_fraction(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
@@ -382,6 +450,95 @@ def surface_fraction(data_dir):
                 ax.scatter(cx[mask],cy[mask],color=colour_Lambda(Lambda))"""
         i+=1
     return time_steps, frac1, frac2, Lambdas
+
+def surface_fraction_high(data_dir):
+    """
+    Finds the fraction of the the contour that is part of the interface of the colony for the higher Lambda.
+
+    It calculates the total contour of the colonies combined and then checks the fraction of points of the higher Lambda 
+    contour that belongs to the total contour. This gives us the points of the HIGHER LAMBDA contour that are exposed
+    to the exterior of the colony, and the points that are part of the interface.
+
+    From this we calculate the total fraction of the points to find the fraction of the contour that is part of the
+    interface.
+
+    returns:
+        frac_interface: 
+        frac_external:
+
+    
+    """
+    file_pattern = os.path.join(data_dir, "biofilm_*.dat")
+    files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
+    time_steps = []
+    
+    t_collision = colonies_collided(files) #finds time when colonies collide
+
+    frac_interface = []
+    frac_external = []
+    
+    i = 0
+    for file_path in files:
+        match = re.search(r'(\d+)', os.path.basename(file_path))
+        if not match:
+            continue
+        time_step = int(match.group(1))
+
+        if time_step*0.1 < t_collision:
+            continue
+        time_steps.append(i * 0.1) #only appends after colonies have collided
+        
+        cells = ut.getCells(file_path)
+        Lambdas = sorted(find_Lambdas(cells))
+        cellshigh = find_Lambda_cells(cells,Lambda=Lambdas[1])
+        contour_total = pd.DataFrame(computeColonyContour(cells),columns=["x","y"])
+        contour = np.asarray(computeColonyContour(cellshigh))
+
+        Lambda_point =[]
+        sensibility = 0.5
+
+        for point in contour:
+            d = np.sqrt((contour_total["x"]-point[0])**2 + (contour_total["y"]-point[1])**2)
+
+            if d.min() < sensibility: #at least one point of the total contour is close to the high contour
+                Lambda_point.append(Lambdas[1])
+            else:
+                Lambda_point.append(Lambdas[0])
+
+                
+        count1 = Lambda_point.count(Lambdas[0])
+        count2 = Lambda_point.count(Lambdas[1])
+
+        frac_interface.append(count1/(count1+count2))
+        frac_external.append(count2/(count1+count2))
+        i+=1
+    return time_steps, frac_interface, frac_external, Lambdas
+
+def s0_interfaceXsurface(file_path):
+    cells = ut.getCells(file_path)
+    Lambdas = sorted(find_Lambdas(cells))
+    cellshigh = find_Lambda_cells(cells,Lambda=Lambdas[1])
+    contour_total = pd.DataFrame(computeColonyContour(cells),columns=["x","y"])
+    contour = np.asarray(computeColonyContour(cellshigh))
+
+    Lambda_point =[]
+    sensibility = 0.5
+
+    for point in contour:
+        d = np.sqrt((contour_total["x"]-point[0])**2 + (contour_total["y"]-point[1])**2)
+
+        if d.min() < sensibility: #at least one point of the total contour is close to the high contour
+            Lambda_point.append(Lambdas[1])
+        else:
+            Lambda_point.append(Lambdas[0])
+
+                
+    count1 = Lambda_point.count(Lambdas[0])
+    count2 = Lambda_point.count(Lambdas[1])
+
+    frac_interface = count1/(count1+count2)
+    frac_external = count2/(count1+count2)
+    return frac_interface
 
 def is_in_circle(x,y,cx,cy,r):
     return (x-cx)**2 +(y-cy)**2 <= r**2
@@ -440,61 +597,6 @@ def find_interface(ax,cells):
     ax.plot(c2_interface[:,0],c2_interface[:,1],"g.")
     ax.plot(c2_rest[:,0],c2_rest[:,1],"k.")
 
-def remove_interface_outliers(contour):
-    print(contour, contour.shape, len(contour))
-    x_IQ3 = np.quantile(contour[:,0],0.75)
-    x_IQ1 = np.quantile(contour[:,0],0.25)
-    xIQR = x_IQ3-x_IQ1
-    xup = x_IQ3 + 1.5*xIQR
-    xlow = x_IQ1 - 1.5*xIQR
-
-    y_IQ3 = np.quantile(contour[:,1],0.75)
-    y_IQ1 = np.quantile(contour[:,1],0.25)
-    yIQR = y_IQ3-y_IQ1
-    yup = y_IQ3 + 1.5*yIQR
-    ylow = y_IQ1 - 1.5*yIQR
-
-    mask = np.where((contour[:,0]>=xlow) & (contour[:,0]<=xup) & (contour[:,1]>=ylow) & (contour[:,1]<=yup))
-    print(contour[mask], contour[mask].shape, len(contour[mask]))
-    return contour[mask]
-
-def remove_sequential_outliers(coords, threshold_factor=3.0): 
-    """ 
-    Removes points that exhibit sudden, uncharacteristic jumps 
-    in distance relative to the rolling average distance between 
-    consecutive points. 
-    """ 
-    coords = np.array(coords) 
-    # Calculate Euclidean distances between consecutive points 
-    # Rolling differences: point[i] - point[i-1] 
-    diffs = np.diff(coords, axis=0, append=[coords[0]]) 
-    distances = np.sqrt(np.sum(diffs**2, axis=1)) 
-
-    # Identify local anomalies using standard deviation / median thresholding 
-    median_dist = np.median(distances) 
-    std_dist = np.std(distances) 
-    cutoff = median_dist + (threshold_factor * std_dist) 
-
-    # Keep points whose step distance to the next point is normal 
-    valid_mask = distances < cutoff 
-    return coords[valid_mask]
-
-from sklearn.cluster import DBSCAN
-def remove_spatial_outliers(coords): 
-    """
-    Removes points that have unusually large distances to their closest neighbors. 
-    """ 
-    coords = np.array(coords) 
-    db = DBSCAN(eps=8.0, min_samples=5).fit(coords)
-    labels = db.labels_
-    unique_labels, counts = np.unique(labels, return_counts=True)
-    cluster_sizes = dict(zip(unique_labels, counts))
-
-    mask = np.array([
-    lab != -1 and cluster_sizes[lab] > 50
-    for lab in labels
-    ])
-    return coords[mask]
 
 
 def max_radius(data_dir):
@@ -527,9 +629,8 @@ def Gyration_values(cells):
             radius of gyration of the total cell population
     """
     Tensor = Gyration_tensor_2D(cells)
-
-    Rg=np.sqrt(np.trace(Tensor))
     eig_val1,eig_val2 = np.linalg.eigvals(Tensor)
+    Rg=np.sqrt(eig_val1+eig_val2) #Rg = sqrt(lambda1 + lambda2)
 
     return Rg,[eig_val1,eig_val2]
 
@@ -537,10 +638,10 @@ def Gyration_tensor_2D(cells):
     Gyr_tensor = np.zeros((2,2))
     cells = centerCells(cells)
     x,y = position_cells(cells)
-    Gyr_tensor[0,0]= np.mean(np.dot(x,x))
-    Gyr_tensor[1,1]= np.mean(np.dot(y,y))
-    Gyr_tensor[0,1]= np.mean(np.dot(x,y))
-    Gyr_tensor[1,0]= np.mean(np.dot(x,y))
+    Gyr_tensor[0,0]= np.mean(x*x)
+    Gyr_tensor[1,1]= np.mean(y*y)
+    Gyr_tensor[0,1]= np.mean(x*y)
+    Gyr_tensor[1,0]= np.mean(y*x)
     return Gyr_tensor
 
 def position_cells(cells):
@@ -594,6 +695,16 @@ def calc_aspect_ratio(data_dir):
             
     return time_steps, asp_ratio
 
+def get_orientation_cells(cells):
+    if type(cells) == pd.DataFrame:
+        theta = np.atan2(cells["ori_y"],cells["ori_x"])    
+    elif type(cells) == list:
+        theta = []
+        for cell in cells:
+            theta.append(np.atan2(cell.ori_y,cell.ori_x))
+    return np.asarray(theta)*180/np.pi
+
+
 
 def RgLambda_time(data_dir):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
@@ -626,13 +737,15 @@ def RgLambda_time(data_dir):
 
     return time_steps, Rg_tot, Lambdas, Rg_1, Rg_2
 
-def RgLambda_time_est(Rg, time_step=0.1):
+def RgLambda_time_est(Rg, time_step=0.1,total=False):
     Rg = np.asarray(Rg)
     Rg[Rg<1] = 1
     linear_rg = np.log2(Rg)
-
     t = np.arange(0, (len(Rg) - 0.5)* time_step, time_step) #0.5 INCLUDED TO AVOID ANY SMALL ERRORS IN FLOAT POINTS
-    popt, pcov= curve_fit(Rg_Lambda_growth, t, linear_rg, p0=(0,2.5)) # tau_rg = 2*tdouble - see notes
+    if total: #total starts higher so becomes circular later
+        t = np.arange(4, (len(Rg) - 0.5)* time_step, time_step)
+        linear_rg = linear_rg[40:]
+    popt, pcov= curve_fit(Rg_Lambda_growth, t, linear_rg, p0=(2,2.5)) # tau_rg = 2*tdouble - see notes
     return popt,np.sqrt(np.diag(pcov))
 
 def Rg_Lambda_growth(t,R0,tau):
@@ -783,11 +896,20 @@ def colour_Lambda(Lambda):
     elif Lambda == 2.0:
         return "#ff0000"
     elif Lambda < 1.0:
-        return (Lambda, 0, 0, 1)
+        return (0.1/Lambda, 0, 0, 1)
     elif Lambda > 1.0:
         return (0,(Lambda-1)/(10-1), 0, 1)
 
-def counts(data_dir):
+def colour_ratio(ratio):
+    if (abs(ratio)- 1.0)<0.1:
+            return "#00ffff"
+    elif ratio == 2.0:
+            return "#ff0000"
+    elif ratio > 1.0:
+            return (0,(ratio-1)/(10-1), 0, 1)
+
+
+def counts(data_dir,channels=False,width=60):
     file_pattern = os.path.join(data_dir, "biofilm_*.dat")
     files = sorted(glob.glob(file_pattern), key=lambda x: int(re.search(r'(\d+)', x).group(1)))
     
@@ -795,13 +917,16 @@ def counts(data_dir):
     Lambda1_counts = []
     Lambda2_counts = []
 
+    Lambdas = sorted(find_Lambdas(pd.read_csv(files[0], sep="\t")))
+
     for file_path in files:
         match = re.search(r'(\d+)', os.path.basename(file_path))
         if not match:
             continue
         time_step = int(match.group(1))
         df = pd.read_csv(file_path, sep="\t")
-        Lambdas = sorted(find_Lambdas(df))
+        if channels:
+            df = remove_out_channel(df,width)
 
         time_steps.append(time_step * 0.1)
 
@@ -817,8 +942,25 @@ def doubling_linear_growth(t, t_doub, N0):
         return N0 + t/t_doub
 def doubling_exp_growth(t, t_doub):
         return  2**(t/t_doub)
-def linear_exp(t,x):
-    return (t)**x
+def linear_exp(t,A,x,m):
+    return m+A*(t)**x
+def tanhx(t,t_star):
+    return np.tanh(t/t_star)
+
+def find_tanh_param(xdata,ydata):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    popt, pcov= curve_fit(tanhx, xdata, ydata,maxfev = 1000000,p0=(1))
+
+    return popt,np.sqrt(np.diag(pcov))
 
 def find_scaling_law(xdata,ydata):
     """
@@ -831,9 +973,15 @@ def find_scaling_law(xdata,ydata):
         Returns:
             doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
     """
-    popt, pcov= curve_fit(linear_exp, xdata, ydata)
+    popt, pcov= curve_fit(linear_exp, xdata, ydata,maxfev = 1000000,p0=(1,0.5,0))
 
     return popt,np.sqrt(np.diag(pcov))
+
+def average_std(dataset):
+    if type(dataset) == pd.DataFrame or type(dataset) == pd.Series:
+        av = dataset.mean()
+        error = dataset.std()/np.sqrt(dataset.shape[0])
+        return av,error
 
 def estimate_exp_growth_rate(counts, time_step=0.1):
     """
@@ -899,7 +1047,43 @@ def calc_fraction(n_L1,n_L2):
     return frac1, frac2
 
 
+def find_fraction_distance(filepath,n_points=10,com="total"):
+    df = pd.read_csv(filepath, sep="\t")
+    df = centerCells(df)
+    Lambdas = sorted(find_Lambdas(df))
+    if com=="total":
+        d_cells = np.asarray(distance_from_origin(df))
+    if com=="higher":
+        centre = centerBiofilm(find_Lambda_cells(df,Lambdas[-1]))
+        d_cells = np.asarray(distance_from_point(df,centre))
+    
+    dmax = max(d_cells)
 
+    d_cells_norm = d_cells/dmax
+
+    counts = np.zeros((2,n_points))
+
+    ds = 1/n_points
+    distance = np.linspace(0, 1.2, n_points+1)
+    frac_higher = []
+    frac_lower = []
+ 
+    for i in range(0,n_points):
+        bin_mask = (d_cells_norm >= distance[i]) & (d_cells_norm < distance[i+1])
+
+        counts[0, i] = np.count_nonzero(bin_mask & (df["Lambda"] == Lambdas[0]))
+        counts[1, i] = np.count_nonzero(bin_mask & (df["Lambda"] == Lambdas[1]))
+        if (counts[0, i] != 0) or (counts[1, i]) != 0:
+            frac_higher.append(counts[1,i]/(np.add(counts[1,i],counts[0,i])))
+            frac_lower.append(counts[0,i]/(np.add(counts[1,i],counts[0,i])))
+        else: 
+            frac_higher.append(0)
+            frac_lower.append(0)
+    
+    distance +=ds/2
+    ratio = round(Lambdas[1]/Lambdas[0],1)
+
+    return distance[:-1],np.asarray(frac_higher),np.asarray(frac_lower),ratio
 
 
 
