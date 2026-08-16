@@ -1,3 +1,4 @@
+from math import tau
 import os
 import re
 import glob
@@ -22,7 +23,7 @@ DEFAULT_OUTPUT_DIR = "C:\\Users\\lucca\\Desktop\\GeneratedOutput"
 
 
 
-def plot_channels(data_dirs, num_snapshots=5,width=60, output_dir=DEFAULT_OUTPUT_DIR):
+def plot_channels(data_dirs, num_snapshots=5,width=60, output_dir=DEFAULT_OUTPUT_DIR,MM=False):
     #repeat_dirs = sorted(glob.glob(os.path.join(parent_dir, "repeat*")))
     #num_repeats = len(repeat_dirs)
     if type(data_dirs) == str:
@@ -33,7 +34,7 @@ def plot_channels(data_dirs, num_snapshots=5,width=60, output_dir=DEFAULT_OUTPUT
         data_dirs = list(data_dirs)
         num_repeats = len(data_dirs)
 
-    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(10, 2* num_repeats),
+    fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(15, 3* num_repeats),
                              constrained_layout=True, facecolor='w')
 
     for r, data_dir in enumerate(data_dirs):
@@ -57,7 +58,7 @@ def plot_channels(data_dirs, num_snapshots=5,width=60, output_dir=DEFAULT_OUTPUT
             selected_files = [files[i] for i in selected_indices]
         if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
             for c, (ax, file) in enumerate(zip(axes, selected_files)):
-                dfunc.plotCells_channel(ax, file, width)
+                dfunc.plotCells_channel(ax, file, width, MM)
                 match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
                 if match:
                     frame_number = int(match.group(1))
@@ -65,7 +66,7 @@ def plot_channels(data_dirs, num_snapshots=5,width=60, output_dir=DEFAULT_OUTPUT
                     ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
         else:
             for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
-                dfunc.plotCells_channel(ax, file, width)
+                dfunc.plotCells_channel(ax, file, width, MM)
                 match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
                 if match:
                     frame_number = int(match.group(1))
@@ -120,24 +121,57 @@ def plot_frac_time(data_dirs,width=60, output_dir=DEFAULT_OUTPUT_DIR):
     ratio = []
 
     for data_dir in data_dirs:
-        #ratio += [pfunc.plot_fraction_time_ratio(data_dir,width)]
-        ratio += pfunc.plot_fraction_time(data_dir,width)
+        ratio += [pfunc.plot_fraction_time_ratio(data_dir,width)]
+        #ratio += pfunc.plot_fraction_time(data_dir,width)
     
-    ratio = set(ratio)
+    ratio = sorted(set(ratio))
     legend_elements = []
     for r in ratio:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(r),label=r'Lambda = '+str(r)) ]
-    plt.legend(handles=legend_elements)
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_ratio(r),label=str(r)) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda$')
 
-    plt.xlabel("Time (h)")
-    plt.ylabel("Fraction of cells")
+    plt.xlabel(r"Time (h)")
+    plt.ylabel(r"Fraction of higher-friction cells, $f_2$")
     plt.tight_layout()
 
     os.makedirs(output_dir, exist_ok=True)
-    save_path = os.path.join(output_dir, f"counts.pdf")
+    save_path = os.path.join(output_dir, f"fraction_channels.pdf")
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved cell count plot to: {save_path}")
     plt.show()
+
+
+def plot_frac_time_high(data_dirs,width=40, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    ratio = []
+
+    for data_dir in data_dirs:
+        ratio += [pfunc.plot_fraction_time_ratio(data_dir,width)]
+    
+    ratio = sorted(set(ratio))
+    legend_elements = []
+    for r in ratio:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(r),label=str(r)) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda$')
+    plt.axline((0, 0), (0,1), linewidth=0.5, color='k')
+    plt.axline((-3, 0), (9,0), linewidth=0.5, color='k')
+
+    plt.xlabel(r"Time after filling, $t - t_\mathrm{fill}$ (h)")
+    plt.ylabel(r"Fraction of higher friction cells, $f_2$")
+    plt.tight_layout()
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"fraction_high_channels.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved cell count plot to: {save_path}")
+    plt.show()
+
 
 def average_frac(dirs_averaged,width=60,output_dir=DEFAULT_OUTPUT_DIR):
     """
@@ -263,10 +297,10 @@ def whisker_diagram(dirs_averaged,width=40, output_dir=DEFAULT_OUTPUT_DIR):
 
     for data_dirs in dirs_averaged:
         Lambdas = Lambdas + list(pfunc.plot_whisker_initial_final(data_dirs,width)) 
-    Lambdas = set(Lambdas)
+    Lambdas = sorted(set(Lambdas))
 
-    plt.xlabel("Number of lower friction cells at simulation start (total = 30)")
-    plt.ylabel("Final fraction")
+    plt.xlabel(r"Initial higher-friction fraction, $f_2(0)$",fontsize=12)
+    plt.ylabel(r"Final fraction, $f_i(t_\mathrm{final})$",fontsize=12)
     plt.tight_layout()
 
     os.makedirs(output_dir, exist_ok=True)
@@ -337,7 +371,7 @@ def plot_exit_frac(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved cell count plot to: {save_path}")
     plt.show()
 
-def plot_frac_IC_normalised(data_dirs,width=60, output_dir=DEFAULT_OUTPUT_DIR,norm=False):
+def plot_frac_IC_normalised(data_dirs,width=60, output_dir=DEFAULT_OUTPUT_DIR,norm=False,par2=False):
     plt.figure(figsize=(5, 3.5))
 
     if type(data_dirs) == str:
@@ -350,7 +384,7 @@ def plot_frac_IC_normalised(data_dirs,width=60, output_dir=DEFAULT_OUTPUT_DIR,no
     t0=0
     tf=0
     for data_dir in data_dirs:
-        r,t = pfunc.cells_change_fraction(data_dir,width,norm)
+        r,t = pfunc.cells_change_fraction(data_dir,width,norm,par2=par2)
         if t[0]<t0:
             t0 = t[0]
         if t[-1]>tf:
@@ -372,8 +406,17 @@ def plot_frac_IC_normalised(data_dirs,width=60, output_dir=DEFAULT_OUTPUT_DIR,no
         legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(r),label=r'ratio = '+str(r)) ]
     plt.legend(handles=legend_elements)
 
-    plt.xlabel(r"$(t-t_0)/\tau^*$")
-    plt.ylabel(r"$(f_2(t) - f_0)/(1-f_0)$")
+    
+    if norm:
+        plt.xlabel(r"Time after filling, $(t-t_\mathrm{fill})/\tau^*$")
+        if par2:
+            plt.ylabel(r"Normalised fraction increase, $y/A$")
+        else:
+            plt.ylabel(r"Normalised fraction increase, $y$")
+    else:
+        plt.xlabel(r"Time after filling, $(t-t_\mathrm{fill})$ (h)")
+        plt.ylabel(r"Normalised fraction increase, $y$")
+    
     plt.tight_layout()
 
     os.makedirs(output_dir, exist_ok=True)
@@ -381,6 +424,68 @@ def plot_frac_IC_normalised(data_dirs,width=60, output_dir=DEFAULT_OUTPUT_DIR,no
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved cell count plot to: {save_path}")
     #plt.show()
+
+def plot_params_ratio(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5),
+                                 constrained_layout=True, facecolor='w')
+    
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+    
+    ratio = []
+    tau = []
+    f_star = []
+    f0 = []
+ 
+    for data_dir in data_dirs:
+        try:
+            r,params,initial_frac = pfunc.cells_change_fraction(data_dir,norm=True,par2=True,t_star=True)
+            if params[0] > 20:
+                a = 2+"b"
+        except:
+            continue
+        
+        ratio += [r]
+        tau += [params[0]]
+        f_star += [params[1]]
+        f0 += [initial_frac]
+
+    ratio = np.asarray(ratio)
+    tau = np.asarray(tau)
+    f_star = np.asarray(f_star)
+    f0 = np.asarray(f0)
+
+    f0_sep = np.unique(f0)
+
+    legend_elements = []
+    for r in set(ratio):
+        mask = np.where(ratio==r)
+        axes[1].scatter(f0[mask],f_star[mask],c=dfunc.colour_Lambda(r),alpha=0.6,s=4)
+        axes[0].scatter(f0[mask],tau[mask],c=dfunc.colour_Lambda(r),alpha=0.6,s=4)
+
+        for f in f0_sep:
+            mask1 = np.where((ratio==r) & (f0==f))
+            n = np.sum(f_star[mask1])
+            axes[1].errorbar(f,np.average(f_star[mask1]),yerr=np.std(f_star[mask1])/np.sqrt(n),markersize=8, fmt="x",c=dfunc.colour_Lambda(r))
+            axes[0].errorbar(f,np.average(tau[mask1]),yerr=np.std(tau[mask1])/np.sqrt(n),markersize=8, fmt="x",c=dfunc.colour_Lambda(r))
+
+
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(r),label=str(r)) ]
+    axes[1].legend(handles=legend_elements,title=r"$\Lambda$",fontsize = 20)
+    axes[0].legend(handles=legend_elements,title=r"$\Lambda$",fontsize = 20)
+    
+    axes[1].set_xlabel(r"Initial fraction, $f_0$",fontsize = 20)
+    axes[0].set_xlabel(r"Initial fraction, $f_0$",fontsize = 20)
+    axes[0].set_ylabel(r"Reorganisation timescale, $\tau^*$ (h)",fontsize = 20)
+    axes[1].set_ylabel(r"Height parameter, $f^*$",fontsize = 20)
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"parameter_collapse_comparison.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved cell count plot to: {save_path}")
+
 
 def fraction_IC_average(dirs_averaged,width=40, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
@@ -399,4 +504,49 @@ def fraction_IC_average(dirs_averaged,width=40, output_dir=DEFAULT_OUTPUT_DIR):
     save_path = os.path.join(output_dir, f"initialxfinal_fractions.pdf")
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved initial x final fractions plot to: {save_path}")
+    plt.show()
+
+
+
+def bar_t_invasion(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+    
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+    
+    ratio = []
+    t_invasion=[]
+    for data_dir in data_dirs:
+        try:
+            t_inv,r = dfunc.find_invasion_time(data_dir)
+            ratio += [r]
+            t_invasion +=[t_inv]
+        except:
+            continue
+    
+    ratio = np.asarray(ratio)
+    t_invasion = np.asarray(t_invasion)
+    t_inv_separated = []
+    r_sep =[]
+    for r in [5.0,10.0]:
+        mask = np.where(ratio==r)
+        if t_invasion[mask].shape == 0:
+            continue
+        t_inv_separated.append(t_invasion[mask])
+        r_sep.append(r)
+
+    plt.boxplot(t_inv_separated,positions=r_sep,vert=True)
+
+        
+    plt.xlabel(r"Ratio, $\Lambda$")
+    
+    plt.ylabel(r"Invasion time, $t_{I}$ (h)")
+    plt.tight_layout()
+    
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"counts.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved cell count plot to: {save_path}")
     plt.show()

@@ -7,9 +7,12 @@
 
 #photo (snapshot) - python Automated_Plotting.py single --file_path C:\Users\lucca\Desktop\GeneratedOutput\SimOutput\test\simple_FreeGrowth_double\repeat8\biofilm_100.dat
 
+from logging import raiseExceptions
 import os
 import re
 import glob
+from turtle import color
+from wsgiref.validate import ErrorWrapper
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -34,7 +37,7 @@ ut.setMPL()
 
 DEFAULT_OUTPUT_DIR = "C:\\Users\\lucca\\Desktop\\GeneratedOutput"
 
-def plot_cells_grid(data_dirs, num_snapshots=5,director=False, defects=False, output_dir=DEFAULT_OUTPUT_DIR):
+def plot_cells_grid(data_dirs, num_snapshots=5,director=False, defects=False, output_dir=DEFAULT_OUTPUT_DIR,label=False):
     if type(data_dirs) == str:
         num_repeats = 1
         data_dirs = [data_dirs]
@@ -46,7 +49,8 @@ def plot_cells_grid(data_dirs, num_snapshots=5,director=False, defects=False, ou
     fig, axes = plt.subplots(num_repeats, num_snapshots, figsize=(num_snapshots*2, 2* num_repeats),
                              constrained_layout=True, facecolor='w')
     
-    initial_time= 0
+    initial_time= 20
+    Lambdas = []
 
     for r, data_dir in enumerate(data_dirs):
         file_pattern = os.path.join(data_dir, "biofilm_*.dat")
@@ -69,15 +73,20 @@ def plot_cells_grid(data_dirs, num_snapshots=5,director=False, defects=False, ou
             selected_files = [files[i] for i in selected_indices]
         if len(axes.shape) == 1:  # If only one repeat, axes will be 1D
             for c, (ax, file) in enumerate(zip(axes, selected_files)):
-                dfunc.plotCells(ax, file, director,defects)
+                Lambdas = dfunc.plotCells(ax, file, director,defects)
+                Lambdas = sorted(set(Lambdas))
+                legend_elements = []
+                for Lambda in Lambdas:
+                    legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(Lambda)) ]
+                fig.legend(handles=legend_elements,title=r'$\Lambda_i$')
                 match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
                 if match:
                     frame_number = int(match.group(1))
                     time_hours = frame_number * 0.1
-                    ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
+                    fig.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
         else:
             for c, (ax, file) in enumerate(zip(axes[r], selected_files)):
-                dfunc.plotCells(ax, file, director, defects)
+                Lambdas += list(dfunc.plotCells(ax, file, director,defects))
                 match = re.search(r'biofilm_(\d+)\.dat$', os.path.basename(file))
                 if match:
                     frame_number = int(match.group(1))
@@ -85,12 +94,20 @@ def plot_cells_grid(data_dirs, num_snapshots=5,director=False, defects=False, ou
                     ax.set_title(f"{time_hours:.1f} h", color='k', fontsize=12)
             axes[r, 0].set_ylabel(f"Repeat {r+1}", fontsize=12, color='k')
 
+    Lambdas = sorted(set(Lambdas))
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(round(Lambda,1))) ]
+    fig.legend(handles=legend_elements,title=r'$\Lambda_i$',loc='outside right center',fontsize = 20)
+    
+
 
     os.makedirs(output_dir, exist_ok=True)
     output_path_pdf = os.path.join(output_dir, f"snapshots.pdf")
 
     fig.savefig(output_path_pdf, format="pdf", dpi=600, bbox_inches="tight")
     print(f"Saved snapshot grid to: {output_path_pdf}")
+    plt.style.use("dark_background")
     plt.show()
 
 def plot_cells_com(data_dirs, num_snapshots=5, output_dir=DEFAULT_OUTPUT_DIR):
@@ -248,7 +265,7 @@ def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR,director=False
                              constrained_layout=True, facecolor='w')
     
     Lambdas = list(dfunc.plotCells(axes, file_path,director=director,defects=defects))
-    c=True
+    c=False
     if c:
         cells = ut.getCells(file_path)
         cellshigh = dfunc.find_Lambda_cells(cells,Lambda=Lambdas[1])
@@ -271,14 +288,14 @@ def plot_single_snapshot(file_path, output_dir=DEFAULT_OUTPUT_DIR,director=False
         for Lambda in Lambdas:
             mask = np.where(np.asarray(Lambda_point)==Lambda)
             if Lambda == 1.0:
-                axes.scatter(cx[mask],cy[mask],color="b",s=25)
+                axes.scatter(cx[mask],cy[mask],color="b",s=30)
             else:
-                axes.scatter(cx[mask],cy[mask],color="k",s=25)
+                axes.scatter(cx[mask],cy[mask],color="g",s=30)
 
-    legend_elements = []
+    """ legend_elements = []
     for Lambda in Lambdas:
         legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    axes.legend(handles=legend_elements)
+    axes.legend(handles=legend_elements)"""
 
     plt.tight_layout()
     
@@ -372,7 +389,8 @@ def plot_aspect_ratio_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.show()
 
 def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR,channels=False,width=60,total=False):
-    plt.figure(figsize=(5, 3.5))
+    plt.figure()
+    fig, axes = plt.subplots(1,1, figsize=(5, 3.5),)
 
     if type(data_dirs) == str:
         data_dirs = [data_dirs]
@@ -380,9 +398,10 @@ def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR,channels=Fals
         data_dirs = list(data_dirs)
 
     if total:
+        Lambdas = []
         for data_dir in data_dirs:
-            pfunc.plot_count_tot(data_dir,channels,width)
-        plt.ylabel("Total Cell Count")
+            Lambdas += list(pfunc.plot_count_tot(data_dir,channels,width))
+        plt.ylabel(r"Total Cell Count, $N_\textrm{total}(t)$")
             
     else:
         Lambdas = []
@@ -390,14 +409,19 @@ def plot_counts_over_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR,channels=Fals
         for data_dir in data_dirs:
             Lambdas += list(pfunc.plot_count(data_dir,channels,width))
         
-        Lambdas = set(Lambdas)
-        legend_elements = []
-        for Lambda in Lambdas:
-            legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-        plt.legend(handles=legend_elements)
-        plt.ylabel("Cell Count")
-        plt.yscale("log")
+        
+        plt.ylabel(r"Cell Count, $N(t)$")
+    plt.yscale("log")
+    Lambdas = sorted(set(Lambdas))
+    
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(Lambda)) ]
+    first = axes.legend(handles=legend_elements,title=r'$\Lambda_i \neq 1$')
+    axes.add_artist(first)
 
+    second, = axes.plot([0,12],[480,480],"k--", label=r"Expected max $N_\textrm{total}$")
+    axes.legend(handles=[second])
     plt.xlabel("Time (h)")
     plt.tight_layout()
 
@@ -422,14 +446,14 @@ def plot_Rg_over_time(data_dirs, save_path=None, output_dir=DEFAULT_OUTPUT_DIR):
     for data_dir in data_dirs:
         Lambdas += list(pfunc.plot_rg_linear(data_dir))
 
-    Lambdas = set(Lambdas)
+    Lambdas = sorted(set(Lambdas))
     legend_elements = []
     for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(Lambda)) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda_i$')
             
     plt.xlabel("Time (h)")
-    plt.ylabel("$log_2 [R_g] $ (microm)")
+    plt.ylabel("$log_2 [R_g]$ (microm)")
     plt.tight_layout()
 
 
@@ -480,14 +504,14 @@ def plot_shape_asphericity(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     for data_dir in data_dirs:
         Lambdas= Lambdas + list(pfunc.plot_shape_asphericity_time(data_dir))
 
-    Lambdas = set(Lambdas)
+    Lambdas = sorted(set(Lambdas))
     legend_elements = []
     for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(Lambda)) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda_i$')
 
     plt.xlabel("Time (h)")
-    plt.ylabel(r"Shape asphericity $A$")
+    plt.ylabel(r"Shape asphericity, $\Delta$")
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"asphericity_colony.pdf")
@@ -495,6 +519,37 @@ def plot_shape_asphericity(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved asphericity plot to: {save_path}")
     plt.show()
+
+def plot_avl(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+    plt.figure(figsize=(5, 3.5))
+
+    if type(data_dirs) == str:
+        data_dirs = [data_dirs]
+    else:
+        data_dirs = list(data_dirs)
+
+    Lambdas =[]
+
+    for data_dir in data_dirs:
+        Lambdas += pfunc.plot_av_length_time(data_dir)
+
+    Lambdas = sorted(set(Lambdas))
+    legend_elements = []
+    for Lambda in Lambdas:
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(Lambda)) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda_i$')
+
+    plt.xlabel("Time (h)")
+    plt.ylabel(r"Average length, $\bar \ell$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_length.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved asphericity plot to: {save_path}")
+    plt.show()
+
+
 
 def plot_dAsph(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     plt.figure(figsize=(5, 3.5))
@@ -588,7 +643,7 @@ def plot_pressure_t(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     print(f"Saved pressure plot to: {save_path}")
     plt.show()
 
-def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
+def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR,log=False):
     plt.figure(figsize=(5, 3.5))
 
     if type(data_dirs) == str:
@@ -601,20 +656,21 @@ def plot_COM_time(data_dirs, output_dir=DEFAULT_OUTPUT_DIR):
     for data_dir in data_dirs:
         Lambdas += list(pfunc.plot_COM_interacting(data_dir))
     
-    Lambdas = set(Lambdas)
+    Lambdas = sorted(set(Lambdas))
     legend_elements = []
     if len(Lambdas)==1:
         legend_elements = [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambdas[0]),label=r'$\Lambda =$'+str(Lambdas[0])) ]
     else:
-        legend_elements.append(Line2D([0], [0], color='k',linestyle="--",label='Total'))
+        #legend_elements.append(Line2D([0], [0], color='k',linestyle="--",label='Total'))
         for Lambda in Lambdas:
-            legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+            legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=Lambda) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda_i$')
 
-    plt.xlabel(r"$log[t-t_{collision}]$")
-    plt.ylabel(r"$log[\vec r_{COM} - \vec r_{0}]$")
-    plt.yscale("log")
-    plt.xscale("log")
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
+    plt.ylabel(r"$\vec r_{COM} - \vec r_{0}$")
+    if log:
+        plt.yscale("log")
+        plt.xscale("log")
     plt.tight_layout()
 
 
@@ -743,7 +799,7 @@ def average_interface_fraction_ratio(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR
     
     plt.legend(handles=legend_elements)
 
-    plt.xlabel(r"$t-t_{collision}$")
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
     plt.ylabel(r"<fraction of the contour occupying interface>")
 
     plt.tight_layout()
@@ -768,14 +824,14 @@ def average_interface_fraction_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR,
     for data_dirs in dirs_averaged:
         Lambdas = Lambdas + list(pfunc.plot_average_interfacexsurface(data_dirs)) 
 
-    Lambdas = set(Lambdas)
+    Lambdas = sorted(set(Lambdas))
     legend_elements = []
     for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(round(Lambda,1))) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda$')
 
-    plt.xlabel(r"$t-t_{collision}$")
-    plt.ylabel(r"<fraction of the contour occupying interface>")
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
+    plt.ylabel(r"Fraction of interface, $ \phi$")
 
     plt.tight_layout()
 
@@ -941,19 +997,16 @@ def average_surfacefrac_ratio(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     for data_dirs in dirs_averaged:
         pfunc.plot_average_surface_fraction_ratio(data_dirs)
 
-    legend_elements = [mpatches.Patch(facecolor=dfunc.colour_Lambda(1.0),label=r'$\Lambda_1/\Lambda_2 =$'+str(1.0)),
-                       mpatches.Patch(facecolor=dfunc.colour_Lambda(1.5),label=r'$\Lambda_1/\Lambda_2 =$'+str(1.5)),
-                       mpatches.Patch(facecolor=dfunc.colour_Lambda(2.0),label=r'$\Lambda_1/\Lambda_2 =$'+str(2.0)),
-                       mpatches.Patch(facecolor=dfunc.colour_Lambda(5.0),label=r'$\Lambda_1/\Lambda_2 =$'+str(5.0)),
-                       mpatches.Patch(facecolor=dfunc.colour_Lambda(10.0),label=r'$\Lambda_1/\Lambda_2 =$'+str(10.0))]
-    legend_elements.append(Line2D([0], [0], color='k',linestyle="-",label=r'$\Lambda_1$'))
-    legend_elements.append(Line2D([0], [0], color='k',linestyle="--",label=r'$\Lambda_2$'))
+    legend_elements = [mpatches.Patch(facecolor=dfunc.colour_Lambda(1.001),label=str(1.0)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(1.5),label=str(1.5)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(5.0),label=str(5.0)),
+                       mpatches.Patch(facecolor=dfunc.colour_Lambda(10.0),label=str(10.0))]
 
     
-    plt.legend(handles=legend_elements)
+    plt.legend(handles=legend_elements,title=r"$\Lambda$")
 
-    plt.xlabel(r"$t-t_{collision}$")
-    plt.ylabel(r"$<surface fraction>$")
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
+    plt.ylabel(r"$Fraction of surface occupied by $\Lambda_2$, $S_2$")
 
     plt.tight_layout()
 
@@ -977,14 +1030,15 @@ def average_surfacefrac_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR,log=Fal
     for data_dirs in dirs_averaged:
         Lambdas = Lambdas + list(pfunc.plot_average_surface_fraction(data_dirs)) 
 
-    Lambdas = set(Lambdas)
-    legend_elements = []
-    for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
-
-    plt.xlabel(r"$t-t_{collision}$")
-    plt.ylabel(r"$<surface fraction>$")
+    legend_elements = [mpatches.Patch(facecolor=dfunc.colour_Lambda(1.001),label=str(1.0)),
+                           mpatches.Patch(facecolor=dfunc.colour_Lambda(1.5),label=str(1.5)),
+                           mpatches.Patch(facecolor=dfunc.colour_Lambda(5.0),label=str(5.0)),
+                           mpatches.Patch(facecolor=dfunc.colour_Lambda(10.0),label=str(10.0))]
+    
+        
+    plt.legend(handles=legend_elements,title=r"$\Lambda$")
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
+    plt.ylabel(r"Fraction of surface occupied by $\Lambda_2, \ S_2$")
 
     plt.tight_layout()
 
@@ -1234,20 +1288,56 @@ def av_frac_dist(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR,com="total"):
     ratio = sorted(set(ratio))
     legend_elements = []
     for r in ratio:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(r),label=r'ratio = '+str(r)) ]
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(r),label=str(r)) ]
 
-    plt.legend(handles=legend_elements)
-    plt.xlabel(r"$R_{COM}/R_{max}$")
-    plt.ylabel(r'<Fraction of cells>')
-    plt.xlim((0,1.1))
+    plt.legend(handles=legend_elements,title=r"ratio, $ \Lambda$")
+    plt.xlabel(r"Radial separation, $\bar{\rho}$")
+    if com=="higher":
+        plt.ylabel(r'Fraction of lower friction cells, $f_1$')
+    elif com=="total":
+        plt.ylabel(r'Fraction of higher friction cells, $f_2$')
+    plt.xlim((0,1))
     plt.tight_layout()
 
-    save_path = os.path.join(output_dir, f"pressure_distance.pdf")
+    save_path = os.path.join(output_dir, f"radial_distribution_cells_from_{com}_com.pdf")
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
-    print(f"Saved pressure vs distance plot to: {save_path}")
+    print(f"Saved plot to: {save_path}")
     plt.show()
 
+def interface_width(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR):
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5),
+                                 constrained_layout=True, facecolor='w')
+    w = []
+    d_star = []
+    ratio = []
+    errorw = []
+    errord =[]
+ 
+    for data_dirs in dirs_averaged:
+        try:
+            params,err,r = pfunc.average_fraction_distance(data_dirs,ax=None,com="higher",width=True)
+        except:
+            continue
+        
+        ratio += [r]
+        w += [params[0]]
+        d_star += [params[1]]
+        errorw +=[err[0]]
+        errord +=[err[1]]
+
+    axes[1].errorbar(ratio,d_star,yerr=errord,marker="x",c="k", linestyle='')
+    axes[0].errorbar(ratio,w,yerr=errorw,marker="x",c="k", linestyle='')
+    
+    axes[1].set_xlabel(r"Ratio, $\Lambda$",fontsize=15)
+    axes[0].set_xlabel(r"Ratio, $\Lambda$",fontsize=15)
+    axes[0].set_ylabel(r"Width of interface, $w$",fontsize=15)
+    axes[1].set_ylabel(r"Multiplying constant, $d^*$",fontsize=15)
+
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"distribution_fraction_radial_parameters.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved plot to: {save_path}")
 
 
 
@@ -1265,14 +1355,10 @@ def average_growth_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     for data_dirs in dirs_averaged:
         Lambdas = Lambdas + list(pfunc.plot_average_growth(data_dirs)) 
 
-    Lambdas = set(Lambdas)
-    legend_elements = []
-    for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+    plt.legend(title=r"$\Lambda_i: \tau_{doub}$")
 
     plt.xlabel("Time (h)")
-    plt.ylabel(r"$log_2 <N(t)>$")
+    plt.ylabel(r"Number of cells, $\log_2 N(t)$")
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"average_GR.pdf")
@@ -1280,6 +1366,34 @@ def average_growth_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved average growth rate plot to: {save_path}")
     plt.show()
+
+def average_Rg_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+    This function should have as input a LIST containing LISTS of the
+    directories to be average and plotted at the same time
+    e.g. [[file1, file2], [file3, file4]]
+    1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+    plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    Lambdas = []
+
+    for data_dirs in dirs_averaged:
+        Lambdas = Lambdas + list(pfunc.plot_average_rg(data_dirs)) 
+
+    plt.legend(title=r"$\Lambda_i: \tau_{doub}$")
+
+    plt.xlabel("Time, $t$ (h)")
+    plt.ylabel(r"Radius of gyration, $\log_2 R_\mathrm{g}(t)$")
+    plt.tight_layout()
+
+    save_path = os.path.join(output_dir, f"average_Rg.pdf")
+
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average growth rate plot to: {save_path}")
+    plt.show()
+
+
 
 def average_asphericity_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     """
@@ -1295,14 +1409,16 @@ def average_asphericity_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     for data_dirs in dirs_averaged:
         Lambdas = Lambdas + list(pfunc.plot_average_asphericity(data_dirs)) 
 
-    Lambdas = set(Lambdas)
+    Lambdas = sorted(set(Lambdas))
     legend_elements = []
     for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=str(Lambda)) ]
+    plt.legend(handles=legend_elements,title=r'$\Lambda_i$')
+            
 
     plt.xlabel("Time (h)")
-    plt.ylabel(r"$<A>$")
+    plt.ylabel(r"Shape asphericity, $\Delta$")
+    plt.tight_layout()
     plt.tight_layout()
 
     save_path = os.path.join(output_dir, f"average_asphericity.pdf")
@@ -1394,12 +1510,12 @@ def average_COM_time(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR,log=False):
     plt.legend(handles=legend_elements)
 
     if log:
-        plt.xlabel(r"$log[t-t_{collision}]$")
-        plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
+        plt.xlabel(r"Time after collision, $t - t_{collision}$ (h)")
+        plt.ylabel(r"$<\vec r_{COM} - \vec r_{0}>$")
         plt.yscale("log")
         plt.xscale("log")
     else:
-        plt.xlabel(r"$t-t_{collision}$")
+        plt.xlabel(r"Time after collision, $t - t_{collision}$ (h)")
         plt.ylabel(r"$<\vec r_{COM} - \vec r_{0}>$")
 
     plt.tight_layout()
@@ -1469,8 +1585,8 @@ def average_COM_ratio(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
     
     plt.legend(handles=legend_elements)
 
-    plt.xlabel(r"$log[t-t_{collision}]$")
-    plt.ylabel(r"$log[<\vec r_{COM} - \vec r_{0}>]$")
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
+    plt.ylabel(r"$<\vec r_{COM} - \vec r_{0}>$")
     plt.yscale("log")
     plt.xscale("log")
     plt.tight_layout()
@@ -1548,7 +1664,6 @@ def plot_average_counts_over_repeats(parent_dir, output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved average cell count plot to: {save_path}")
     plt.show()
-#FIX THIS ONE!!!!
 
 def plot_t_doub_Lambda_av(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR, lines=False):
     """
@@ -1564,22 +1679,23 @@ def plot_t_doub_Lambda_av(dirs_averaged, output_dir=DEFAULT_OUTPUT_DIR, lines=Fa
     for data_dirs in dirs_averaged:
         Lambdas = Lambdas + list(pfunc.t_doub_Lambda(data_dirs)) 
 
-    Lambdas = set(Lambdas)
-    legend_elements = []
-    for Lambda in Lambdas:
-        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=dfunc.colour_Lambda(Lambda),label=r'$\Lambda =$'+str(Lambda)) ]
-    plt.legend(handles=legend_elements)
+    Lambdas = sorted(set(Lambdas))
+    legend_elements = [Line2D([0], [0], color='k',linestyle="--",label=r'Prediction')]
+    
 
 
     #plots growth rate lines
     if lines:
-        plt.plot([0.5,10.5],[0.75,0.75],"--", color="k")
-        plt.plot([0.5,10.5],[1.25,1.25],":", color="k")
+        #plt.plot([0.5,10.5],[0.7,0.7],"--", color="k")
+        plt.plot([0.5,10.5],[3.5/3,3.5/3],"--", color="k")
+
+    plt.legend(handles=legend_elements)
 
 
-    plt.xlabel(r"$\Lambda$")
-    plt.ylabel(r'$t_{doubling}$ (h)')
-    plt.xlim([0.5,10.5])
+    plt.xlabel(r"Friction coefficient, $\Lambda_i$")
+    plt.ylabel(r'Doubling time, $\tau_{doub}$ (h)')
+    plt.xlim([0.5,5.5])
+    plt.title(r"$\mu = 3$ microns/h")
 
     plt.tight_layout()
 
@@ -1689,6 +1805,63 @@ def plot_fraction_x_evolution(data_dir, width=0, output_dir=DEFAULT_OUTPUT_DIR):
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
     print(f"Saved fraction over colony plot to: {save_path}")
     plt.show()
+
+from analytical_model_functions import evolve_time
+def plot_wrapping_analytical_varying(dirs_averaged,output_dir=DEFAULT_OUTPUT_DIR):
+    """
+        This function should have as input a LIST containing LISTS of the
+        directories to be average and plotted at the same time
+        e.g. [[file1, file2], [file3, file4]]
+        1 and 2 will be averaged and plloted and 3 and 4 will be averaged and
+        plotted.
+    """
+    plt.figure(figsize=(5, 3.5))
+    colours = ["k",dfunc.colour_Lambda(10.0),"purple","b"]
+    
+    for i, data_dirs in enumerate(dirs_averaged):
+        pfunc.surface_frac_analytical_param(data_dirs,colours[i])
+
+
+    dt = 0.0001
+    tend = 10
+    time = np.arange(0,tend,dt)
+
+    frac_s0 = 0.1
+    
+    av_l=[5,5,5,6.5]
+    t0 = [1,3,5,3]
+    tau=[3,1.8,1.35,2.15]
+
+    x = [3,5,7,5]
+    fraction = np.zeros((len(time),len(x)))
+    for i in range(0,len(x)):
+        r0 = np.sqrt(2)*2**(t0[i]/tau[i])
+        sgreen,sblue = evolve_time(time,frac_s0=frac_s0,dt=dt,mu=x[i],av_l=av_l[i],R0=r0,tau=tau[i])
+
+        fraction[:,i] = sblue/sgreen
+        plt.plot(time,fraction[:,i],c=colours[i])
+
+    legend_elements = []
+    for i,c in enumerate(colours):
+        legend_elements = legend_elements+ [ mpatches.Patch(facecolor=c,label=f"{x[i]}, {av_l[i]}") ]
+
+    legend_elements = legend_elements + [Line2D([0], [0], color='k',linestyle="-",label=r'Model'),Line2D([0], [0], color='k',marker="x",label= r"Simulation", markersize=15)]
+
+    plt.legend(handles=legend_elements,title=r'$\mu, \ \bar{\ell} $')
+    
+    plt.xlabel(r'Time after collision, $t - t_{collision}$ (h)')
+    plt.ylabel(r"Fraction of interface, $\phi$")
+    
+    plt.tight_layout()
+    
+    save_path = os.path.join(output_dir, f"surfacefrac_paramschange.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved average xCOM plot to: {save_path}")
+    plt.show()
+
+
+
+
 
 
 

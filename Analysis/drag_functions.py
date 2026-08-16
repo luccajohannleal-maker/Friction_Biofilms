@@ -113,7 +113,7 @@ def plotCellsCOM(ax, file):
         ax.axis('scaled')
         ax.axis('off')
 
-def plotCells_channel(ax, file, width=40):
+def plotCells_channel(ax, file, width=40, MM=False):
         dat = pd.read_csv(file, sep='\t')
         cells = ut.getCells(file)
         x_center,y_center = 0, 0
@@ -138,12 +138,20 @@ def plotCells_channel(ax, file, width=40):
 
 
         #Plots walls
-        scale = 1
-        wall_color = 'k'
-        ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_top/scale, y_top/scale], color=wall_color, alpha=0.6)
-        ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_bottom/scale, y_bottom/scale], color=wall_color, alpha=0.6)
-        ax.plot([y_bottom*1.5/scale, y_bottom*1.5/scale], [y_top/scale, y_bottom/scale],"--", color=wall_color, alpha=0.6)
-        ax.plot([y_top*1.5/scale, y_top*1.5/scale], [y_top/scale, y_bottom/scale],"--", color=wall_color, alpha=0.6)
+        if MM:
+            scale = 1
+            wall_color = 'k'
+            ax.plot([-60, 60], [y_top/scale, y_top/scale],"--", color=wall_color, alpha=0.6)
+            ax.plot([-60, 60], [y_bottom/scale, y_bottom/scale],"--", color=wall_color, alpha=0.6)
+
+        else:
+            scale = 0.3
+            wall_color = 'k'
+            ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_top, y_top], color=wall_color, alpha=0.6)
+            ax.plot([y_bottom*1.5/scale, y_top*1.5/scale], [y_bottom, y_bottom], color=wall_color, alpha=0.6)
+            #ax.plot([y_bottom*1.5/scale, y_bottom*1.5/scale], [y_top, y_bottom],"--", color=wall_color, alpha=0.6)
+            #ax.plot([y_top*1.5/scale, y_top*1.5/scale], [y_top, y_bottom],"--", color=wall_color, alpha=0.6)
+            
 
 
         ax.set_xlim([-80, 80])
@@ -902,11 +910,11 @@ def colour_Lambda(Lambda):
 
 def colour_ratio(ratio):
     if (abs(ratio)- 1.0)<0.1:
-            return "#00ffff"
-    elif ratio == 2.0:
-            return "#ff0000"
+        return "#00ffff"
+        """elif ratio == 2.0:
+            return "#ff0000"""
     elif ratio > 1.0:
-            return (0,(ratio-1)/(10-1), 0, 1)
+        return (0,(ratio-1)/(10-1), 0, 1)
 
 
 def counts(data_dir,channels=False,width=60):
@@ -944,10 +952,14 @@ def doubling_exp_growth(t, t_doub):
         return  2**(t/t_doub)
 def linear_exp(t,A,x,m):
     return m+A*(t)**x
-def tanhx(t,t_star):
+def tanhx_simple(t,t_star):
     return np.tanh(t/t_star)
+def tanhx(t,t_star,A):
+    return A*np.tanh(t/t_star)
+def tanhx_fraction(rho,w,d_star):
+    return d_star*(0.5+ np.tanh(rho/w))
 
-def find_tanh_param(xdata,ydata):
+def find_tanh_1param(xdata,ydata):
     """
         Parameters:
             counts: list of int
@@ -958,9 +970,58 @@ def find_tanh_param(xdata,ydata):
         Returns:
             doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
     """
-    popt, pcov= curve_fit(tanhx, xdata, ydata,maxfev = 1000000,p0=(1))
+    popt, pcov= curve_fit(tanhx_simple, xdata, ydata,maxfev = 1000000,p0=(1))
 
     return popt,np.sqrt(np.diag(pcov))
+
+def find_tanh_2param(xdata,ydata,t_guess=None):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    if t_guess is None:
+        popt, pcov= curve_fit(tanhx, xdata, ydata,maxfev = 1000000,p0=(1,1))
+    else:
+        popt, pcov= curve_fit(tanhx, xdata, ydata,maxfev = 1000000,p0=(t_guess,1),bounds=([0, 0], [np.inf, 5]))
+
+    return popt,np.sqrt(np.diag(pcov))
+
+def find_tanh_1param(xdata,ydata):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    popt, pcov= curve_fit(tanhx_simple, xdata, ydata,maxfev = 1000000,p0=(1))
+
+    return popt,np.sqrt(np.diag(pcov))
+
+def find_tanh_fraction_dist(xdata,ydata):
+    """
+        Parameters:
+            counts: list of int
+                cell counts over time
+            time_step: int
+                time step of the simulation
+
+        Returns:
+            doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
+    """
+    popt, pcov= curve_fit(tanhx_fraction, xdata, ydata,maxfev = 1000000,p0=(1,1))
+
+    return popt,np.sqrt(np.diag(pcov))
+
 
 def find_scaling_law(xdata,ydata):
     """
@@ -995,7 +1056,7 @@ def estimate_exp_growth_rate(counts, time_step=0.1):
             doubling time parameter popt[0] and its error np.sqrt(np.diag(pcov))[0]
     """
     t = np.arange(0, (len(counts) - 0.5)* time_step, time_step) #0.5 INCLUDED TO AVOID ANY SMALL ERRORS IN FLOAT POINTS
-    popt, pcov= curve_fit(doubling_exp_growth, t, counts, p0=(0.7))
+    popt, pcov= curve_fit(doubling_exp_growth, t, counts, p0=(0,1.8))
 
     return popt,np.sqrt(np.diag(pcov))
 
@@ -1064,7 +1125,7 @@ def find_fraction_distance(filepath,n_points=10,com="total"):
     counts = np.zeros((2,n_points))
 
     ds = 1/n_points
-    distance = np.linspace(0, 1.2, n_points+1)
+    distance = np.linspace(0, 1, n_points+1)
     frac_higher = []
     frac_lower = []
  
@@ -1085,7 +1146,20 @@ def find_fraction_distance(filepath,n_points=10,com="total"):
 
     return distance[:-1],np.asarray(frac_higher),np.asarray(frac_lower),ratio
 
-
+def find_invasion_time(data_dir):
+    time_steps, Lambda1_counts, Lambda2_counts, Lambdas = counts(data_dir)
+    Lambdas = sorted(Lambdas)
+    frac1,frac2 = calc_fraction(np.asarray(Lambda1_counts), np.asarray(Lambda2_counts))
+    
+    t_fill = 3.2
+    frac_target = 0.25
+    if sum(frac1 <= frac_target) != 0:
+        index = next((i for i, val in enumerate(frac1[int(t_fill*10):]) if val < frac_target ), -1)
+        t_invasion = round(index*0.1,1)
+        return t_invasion,round(Lambdas[1]/Lambdas[0],1)
+    else:
+        print(f"{round(Lambdas[1]/Lambdas[0],1)} no invasion tf = {time_steps[-1]} h")
+    
 
 
 
@@ -1165,4 +1239,5 @@ def locate_nematic_defects_vector(x, y, ux, uy, r_cut=8):
 
 
 
-
+test_exit = "C:\\Users\\lucca\\Desktop\\GeneratedOutput\\SimOutput\\data\\InfiniteChannel\\\MM\\width2_15\\Lambda0_1\\repeat20"
+#print(find_invasion_time(test_exit))

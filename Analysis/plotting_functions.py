@@ -15,17 +15,24 @@ def plot_count(data_dir,channels=False, width=60):
     time_steps, Lambda1_counts, Lambda2_counts, Lambdas = dfunc.counts(data_dir, channels, width)
     Lambdas = sorted(Lambdas)
 
-    plt.plot(time_steps, Lambda1_counts, 'o', color=dfunc.colour_Lambda(Lambdas[0]))
+    if Lambdas[1] == 1.0:
+        plt.plot(time_steps, Lambda1_counts, 'o', color=dfunc.colour_Lambda(Lambdas[0]))
+        return [Lambdas[0]]
+        
 
     if len(Lambdas) != 1.0:
         plt.plot(time_steps, Lambda2_counts, 'o', color=dfunc.colour_Lambda(Lambdas[1]))
+        return [Lambdas[1]]
+    plt.plot(time_steps, Lambda1_counts, 'o', color=dfunc.colour_Lambda(Lambdas[0]))
     return Lambdas
 
 def plot_count_tot(data_dir,channels=False, width=60):
     time_steps, Lambda1_counts, Lambda2_counts, Lambdas = dfunc.counts(data_dir, channels, width)
     Lambdas = sorted(Lambdas)
-
-    plt.plot(time_steps, np.asarray(Lambda1_counts)+np.asarray(Lambda2_counts), color="k")
+    for Lambda in Lambdas:
+        if Lambda != 1:
+            plt.plot(time_steps, np.asarray(Lambda1_counts)+np.asarray(Lambda2_counts), color=dfunc.colour_Lambda(Lambda))
+            return [Lambda]
 
 
 def plot_rg_linear(data_dir):
@@ -246,12 +253,18 @@ def plot_pressure_time(data_dir):
 
 def plot_av_length_time(data_dir):
     files = get_file_paths(data_dir)
+    Lambdas = sorted(dfunc.find_Lambdas(pd.read_csv(files[0], sep="\t")))
+    if len(Lambdas) > 1:
+        Lambdas = sorted(Lambdas)
+        Lambdas = Lambdas[1]/Lambdas[0]
+    else:
+        Lambdas = Lambdas[0]
+
 
     time_steps = []
     av_ltot=[]
 
     for file_path in files:
-                
         match = re.search(r'(\d+)', os.path.basename(file_path))
         if not match:
             continue
@@ -261,7 +274,8 @@ def plot_av_length_time(data_dir):
         df = pd.read_csv(file_path, sep="\t")
         av_ltot.append(dfunc.average_length(df))
         
-        plt.plot(time_steps,av_ltot,color="k")
+        plt.plot(time_steps,av_ltot,color=dfunc.colour_Lambda(Lambdas))
+    return [Lambdas]
 
 def orientation_time(data_dir,width=40):
     files = get_file_paths(data_dir)
@@ -539,11 +553,17 @@ def plot_average_interfacexsurface(data_dirs,ax=None):
 
         fraction1 = np.asarray(fraction1)
         avg1 = np.nanmean(fraction1, axis=0)
-        std1 =np.nanstd(fraction1, axis=0)/(np.sqrt(fraction1.shape[0]))
+        count1 = np.sum(~np.isnan(fraction1), axis=0)
+        
+        # Only retain positions with >= 2 datapoints
+        mask1 = count1 >= 2
+        avg1 = np.nanmean(fraction1[:, mask1], axis=0)
+        std1 = np.nanstd(fraction1[:, mask1], axis=0)/np.sqrt(count1[mask1])
+
         if ax == None:
-            plt.errorbar(time, avg1,yerr=std1,fmt="-", color=dfunc.colour_Lambda(Lam[1]))
+            plt.errorbar(time[mask1], avg1,yerr=std1,fmt="-", color=dfunc.colour_Lambda(Lam[1]))
         else:
-            ax.errorbar(time, avg1,yerr=std1,fmt="-", color=dfunc.colour_Lambda(Lam[1]))
+            ax.errorbar(time[mask1], avg1,yerr=std1,fmt="-", color=dfunc.colour_Lambda(Lam[1]))
 
         """fraction2 = np.asarray(fraction2)
         avg2 = np.nanmean(fraction2, axis=0)
@@ -652,12 +672,16 @@ def plot_average_surface_fraction(data_dirs):
         fraction1 = np.asarray(fraction1)
         avg1 = np.nanmean(fraction1, axis=0)
         std1 =np.nanstd(fraction1, axis=0)/(np.sqrt(fraction1.shape[0]))
-        plt.errorbar(time, avg1,yerr=std1,fmt="-", color=dfunc.colour_Lambda(Lam[0]))
+        #plt.errorbar(time, avg1,yerr=std1,fmt="-", color=dfunc.colour_Lambda(Lam[0]))
 
         fraction2 = np.asarray(fraction2)
-        avg2 = np.nanmean(fraction2, axis=0)
-        std2 =np.nanstd(fraction2, axis=0)/(np.sqrt(fraction2.shape[0]))
-        plt.errorbar(time, avg2,yerr=std2,fmt="-", color=dfunc.colour_Lambda(Lam[1]))
+        # Number of valid datapoints at each position
+        count2 = np.sum(~np.isnan(fraction2), axis=0)
+        # Only retain positions with >= 2 datapoints
+        mask2 = count2 >= 2
+        avg2 = np.nanmean(fraction2[:, mask2], axis=0)
+        std2 = np.nanstd(fraction2[:, mask2], axis=0) / np.sqrt(count2[mask2])
+        plt.errorbar(time[mask2], avg2,yerr=std2,fmt="-", color=dfunc.colour_Lambda(Lam[1]))
 
         
     return Lambdas
@@ -964,7 +988,7 @@ def plot_fraction_distance(data_dir):
     plt.plot(d_normalised, fraction_higher,"--",color = dfunc.colour_ratio(ratio))
     return ratio
 
-def average_fraction_distance(data_dirs,ax=None,com="total"):
+def average_fraction_distance(data_dirs,ax=None,com="total",width=False):
     #com = "total" or "higher" and it indicates which COM to be considered.
     #com = "total" is the total COM, the "higher" is the COM of the higher Lmabda colony
 
@@ -983,17 +1007,27 @@ def average_fraction_distance(data_dirs,ax=None,com="total"):
     avg_L2 = np.mean(fraction_low, axis=0)
     std_L2 =np.std(fraction_low, axis=0)/np.sqrt(len(data_dirs))
 
-    if ax == None:
-        plt.errorbar(d_normalised, avg_L1,yerr=std_L1, color=dfunc.colour_Lambda(ratio))
+
+    if not width:
+        if ax == None:
+            if com == "higher":
+                plt.errorbar(d_normalised, avg_L2,yerr=std_L2, color=dfunc.colour_Lambda(ratio))
+            if com=="total":
+                plt.errorbar(d_normalised, avg_L1,yerr=std_L1, color=dfunc.colour_Lambda(ratio))
+
+            return ratio
+
+        ax.errorbar(d_normalised, avg_L1,yerr=std_L1, color=dfunc.colour_Lambda(ratio))
         if com == "higher":
-            plt.errorbar(d_normalised, avg_L2,fmt="--",yerr=std_L2, color=dfunc.colour_Lambda(ratio))
-
+            ax.errorbar(d_normalised, avg_L2,"--",yerr=std_L2, color=dfunc.colour_Lambda(ratio))
         return ratio
+    else:
+        avg_L2 = avg_L2
+        d_normalised = d_normalised-0.5
+        params,error = dfunc.find_tanh_fraction_dist(d_normalised,avg_L2)
+        print(f"ratio={ratio}: f2(rho) = ({round(params[1],2)}+-{round(error[1],2)})*(0.5+tanh((rho-0.5)/({round(params[0],2)}+-{round(error[0],2)})))")
+        return params,error,ratio
 
-    ax.errorbar(d_normalised, avg_L1,yerr=std_L1, color=dfunc.colour_Lambda(ratio))
-    if com == "higher":
-        ax.errorbar(d_normalised, avg_L2,"--",yerr=std_L2, color=dfunc.colour_Lambda(ratio))
-    return ratio
 
 
 
@@ -1036,44 +1070,126 @@ def plot_average_growth(data_dirs,ax=None):
     
     # 4. Calculate the averages ignoring the NaNs
     if ax == None:
-        for Lambda in Lam:
-            if Lambda == 1:
-                print(L1_count)
-                avg_L1 = np.nanmean(L1_count, axis=0)
-                std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2)*np.sqrt(L1_count.shape[1]))
-                params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(avg_L1, time_step=0.1)
-                print(f"Behaviour for Lambda={Lambda}: log_2 N(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
-                if len(avg_L1) == len(time):
-                    plt.errorbar(time, np.log2(avg_L1),fmt= '.',yerr=std_L1, markersize=6, color=dfunc.colour_Lambda(Lambda))
-                    plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda1), '-', color=dfunc.colour_Lambda(Lambda))
-                
-            else:
-                avg_Ln1 = np.nanmean(Ln1_count, axis=0)
-                std_Ln1 = np.nanstd(Ln1_count, axis=0)/(avg_Ln1*np.log(2)*np.sqrt(Ln1_count.shape[1]))
-                params_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(avg_Ln1, time_step=0.1)
-                print(f"Behaviour for Lambda={Lambda}: log_2 N(t) =({round(params_Lambdanot1[1],3)}+-{round(err_Lambdanot1[1],3)}) + t/({round(params_Lambdanot1[0],3)}+-{round(err_Lambdanot1[0],3)})")
-                if len(avg_Ln1) == len(time):
-                    plt.errorbar(time, np.log2(avg_Ln1),fmt= '.',yerr=std_Ln1, markersize=6, color=dfunc.colour_Lambda(Lambda))
-                    plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambdanot1), '-', color=dfunc.colour_Lambda(Lambda))
-        return Lambdas
+        avg_L1 = np.nanmean(L1_count, axis=0)
+        std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2)*np.sqrt(L1_count.shape[0]))
+        params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(avg_L1, time_step=0.1)
+        print(f"Behaviour for Lambda={Lam[0]}: log_2 N(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
+        if len(avg_L1) == len(time):
+            plt.errorbar(time, np.log2(avg_L1),fmt= '.',yerr=std_L1, markersize=6, color=dfunc.colour_Lambda(Lam[0]))
+            plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda1), '-', color=dfunc.colour_Lambda(Lam[0]),label=f"{Lam[0]}: ${round(params_Lambda1[0],3)}\pm{round(err_Lambda1[0],3)}$")
+        if len(Lam) != 1:
+            avg_L2 = np.nanmean(Ln1_count, axis=0)
+            std_L2 =np.nanstd(Ln1_count, axis=0)/(avg_L2*np.log(2)*np.sqrt(Ln1_count.shape[0]))
+            params_Lambda2, err_Lambda2 = dfunc.estimate_growth_rate(avg_L2, time_step=0.1)
+            print(f"Behaviour for Lambda={Lam[1]}: log_2 N(t) =({round(params_Lambda2[1],3)}+-{round(err_Lambda2[1],3)}) + t/({round(params_Lambda2[0],3)}+-{round(err_Lambda2[0],3)})")
+            if len(avg_L2) == len(time):
+                plt.errorbar(time, np.log2(avg_L2),fmt= '.',yerr=std_L2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
+                plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda2), '-', color=dfunc.colour_Lambda(Lam[1]),label=f"{Lam[1]}: ${round(params_Lambda2[0],3)}\pm{round(err_Lambda2[0],3)}$")
+        return Lam
     
     avg_L1 = np.nanmean(L1_count, axis=0)
-    std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2))#*np.sqrt(L1_count.shape[1]))
+    std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2)*np.sqrt(L1_count.shape[0]))
     params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(avg_L1, time_step=0.1)
     print(f"Behaviour for Lambda={Lam[0]}: log_2 N(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
     if len(avg_L1) == len(time):
-        ax.errorbar(time, np.log2(avg_L1),fmt= '.',yerr=std_L1, markersize=3, color=dfunc.colour_Lambda(Lam[0]),alpha=0.3)
-        ax.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda1), '-', color=dfunc.colour_Lambda(Lam[0]))
-                
+        plt.errorbar(time, np.log2(avg_L1),fmt= '.',yerr=std_L1, markersize=6, color=dfunc.colour_Lambda(Lam[0]))
+        plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda1), '-', color=dfunc.colour_Lambda(Lam[0]),label=f"{Lam[0]}: ${round(params_Lambda1[0],3)}\pm{round(err_Lambda1[0],3)}$")
     if len(Lam) != 1:
-        avg_Ln1 = np.nanmean(Ln1_count, axis=0)
-        std_Ln1 = np.nanstd(Ln1_count, axis=0)/(avg_Ln1*np.log(2))#*np.sqrt(Ln1_count.shape[1]))
-        params_Lambdanot1, err_Lambdanot1 = dfunc.estimate_growth_rate(avg_Ln1, time_step=0.1)
-        print(f"Behaviour for Lambda={Lambda}: log_2 N(t) =({round(params_Lambdanot1[1],3)}+-{round(err_Lambdanot1[1],3)}) + t/({round(params_Lambdanot1[0],3)}+-{round(err_Lambdanot1[0],3)})")
-        if len(avg_Ln1) == len(time):
-            ax.errorbar(time, np.log2(avg_Ln1),fmt= '.',yerr=std_Ln1, markersize=2, color=dfunc.colour_Lambda(Lambda),alpha=0.3)
-            ax.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambdanot1), '-', color=dfunc.colour_Lambda(Lambda))
-    return Lam,params_Lambda1[0], err_Lambda1[1]
+        avg_L2 = np.nanmean(Ln1_count, axis=0)
+        std_L2 =np.nanstd(Ln1_count, axis=0)/(avg_L2*np.log(2)*np.sqrt(Ln1_count.shape[0]))
+        params_Lambda2, err_Lambda2 = dfunc.estimate_growth_rate(avg_L2, time_step=0.1)
+        print(f"Behaviour for Lambda={Lam[1]}: log_2 N(t) =({round(params_Lambda2[1],3)}+-{round(err_Lambda2[1],3)}) + t/({round(params_Lambda2[0],3)}+-{round(err_Lambda2[0],3)})")
+        if len(avg_L2) == len(time):
+            plt.errorbar(time, np.log2(avg_L2),fmt= '.',yerr=std_L2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
+            plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda2), '-', color=dfunc.colour_Lambda(Lam[1]),label=f"{Lam[1]}: ${round(params_Lambda2[0],3)}\pm{round(err_Lambda2[0],3)}$")
+
+    return Lam, params_Lambda1[1], err_Lambda1[1]
+
+def plot_average_rg(data_dirs,ax=None):
+    raw_L1 = []
+    raw_Ln1 = []
+    Lam = []
+    time = []
+    max_len = 0
+
+    # 1. Collect raw data and find the longest timeline
+    for data_dir in data_dirs:
+
+
+        time_steps, Rg_tot, Lambdas,  Lambda1_counts, Lambdanot1_counts= dfunc.RgLambda_time(data_dir)
+        if len(Lambdas) == 1:
+            Lambda1_counts = Rg_tot
+        
+        raw_L1.append(Lambda1_counts)
+        raw_Ln1.append(Lambdanot1_counts)
+        Lam.append(Lambdas)
+
+        # Track the longest time sequence
+        if len(time_steps) > max_len:
+            time = time_steps
+            max_len = len(time_steps)
+    Lam = np.unique(Lam)
+    L1_count = []
+    Ln1_count = []
+    # 2. Pad the shorter sequences with NaN up to max_len
+    if Lam != 1:
+        for item1, itemnot1 in zip(raw_L1, raw_Ln1):
+            # Pad Lambda 1 counts
+            padded_L1 = list(item1) + [np.nan] * (max_len - len(item1))
+            L1_count.append(padded_L1)
+            
+            # Pad Lambda not 1 counts
+            padded_Ln1 = list(itemnot1) + [np.nan] * (max_len - len(itemnot1))
+            Ln1_count.append(padded_Ln1)
+    else:
+        for item1 in raw_L1:
+            # Pad Lambda 1 counts
+            padded_L1 = list(item1) + [np.nan] * (max_len - len(item1))
+            L1_count.append(padded_L1)
+        
+    L1_count = np.asarray(L1_count)
+    Ln1_count = np.asarray(Ln1_count)
+    time = np.asarray(time)
+    
+    # 4. Calculate the averages ignoring the NaNs
+    if ax == None:
+        avg_L1 = np.nanmean(L1_count, axis=0)
+        mask = np.where(avg_L1 != 0)
+        std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2)*np.sqrt(L1_count.shape[0]))
+        params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(avg_L1[mask[0]], time_step=0.1)
+        print(f"Behaviour for Lambda={Lam[0]}: log_2 Rg(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
+        if len(avg_L1) == len(time):
+            plt.errorbar(time[mask[0]], np.log2(avg_L1[mask[0]]),fmt= '.',yerr=std_L1[mask[0]], markersize=6, color=dfunc.colour_Lambda(Lam[0]))
+            plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda1), '-', color=dfunc.colour_Lambda(Lam[0]),label=f"{Lam[0]}: ${round(params_Lambda1[0],3)}\pm{round(err_Lambda1[0],3)}$")
+        if len(Lam) != 1:
+            avg_L2 = np.nanmean(Ln1_count, axis=0)
+            std_L2 =np.nanstd(Ln1_count, axis=0)/(avg_L2*np.log(2)*np.sqrt(Ln1_count.shape[0]))
+            params_Lambda2, err_Lambda2 = dfunc.estimate_growth_rate(avg_L2, time_step=0.1)
+            print(f"Behaviour for Lambda={Lam[1]}: log_2 Rg(t) =({round(params_Lambda2[1],3)}+-{round(err_Lambda2[1],3)}) + t/({round(params_Lambda2[0],3)}+-{round(err_Lambda2[0],3)})")
+            if len(avg_L2) == len(time):
+                plt.errorbar(time, np.log2(avg_L2),fmt= '.',yerr=std_L2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
+                plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda2), '-', color=dfunc.colour_Lambda(Lam[1]),label=f"{Lam[1]}: ${round(params_Lambda2[0],3)}\pm{round(err_Lambda2[0],3)}$")
+        return Lam
+    
+    avg_L1 = np.nanmean(L1_count, axis=0)
+    std_L1 =np.nanstd(L1_count, axis=0)/(avg_L1*np.log(2)*np.sqrt(L1_count.shape[0]))
+    params_Lambda1, err_Lambda1 = dfunc.estimate_growth_rate(avg_L1, time_step=0.1)
+    print(f"Behaviour for Lambda={Lam[0]}: log_2 Rg(t) =({round(params_Lambda1[1],3)}+-{round(err_Lambda1[1],3)}) + t/({round(params_Lambda1[0],3)}+-{round(err_Lambda1[0],3)})")
+    if len(avg_L1) == len(time):
+        plt.errorbar(time, np.log2(avg_L1),fmt= '.',yerr=std_L1, markersize=6, color=dfunc.colour_Lambda(Lam[0]))
+        plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda1), '-', color=dfunc.colour_Lambda(Lam[0]),label=f"{Lam[0]}: ${round(params_Lambda1[0],3)}\pm{round(err_Lambda1[0],3)}$")
+    if len(Lam) != 1:
+        avg_L2 = np.nanmean(Ln1_count, axis=0)
+        std_L2 =np.nanstd(Ln1_count, axis=0)/(avg_L2*np.log(2)*np.sqrt(Ln1_count.shape[0]))
+        params_Lambda2, err_Lambda2 = dfunc.estimate_growth_rate(avg_L2, time_step=0.1)
+        print(f"Behaviour for Lambda={Lam[1]}: log_2 Rg(t) =({round(params_Lambda2[1],3)}+-{round(err_Lambda2[1],3)}) + t/({round(params_Lambda2[0],3)}+-{round(err_Lambda2[0],3)})")
+        if len(avg_L2) == len(time):
+            plt.errorbar(time, np.log2(avg_L2),fmt= '.',yerr=std_L2, markersize=6, color=dfunc.colour_Lambda(Lam[1]))
+            plt.plot(time, dfunc.doubling_linear_growth(np.array(time), *params_Lambda2), '-', color=dfunc.colour_Lambda(Lam[1]),label=f"{Lam[1]}: ${round(params_Lambda2[0],3)}\pm{round(err_Lambda2[0],3)}$")
+
+    return Lam, params_Lambda1[1], err_Lambda1[1]
+
+
 
 def plot_average_asphericity(data_dirs):
     raw_L1 = []
@@ -1514,12 +1630,12 @@ def t_doub_Lambda(data_dirs):
             params_Lambda2, err_Lambda2 = dfunc.estimate_growth_rate(Lambda2_counts, time_step=0.1)
             tdoubl2.append(params_Lambda2[0])
     
-    plt.errorbar(Lambdas[0],np.mean(tdoubl1),yerr=np.std(tdoubl1)/np.sqrt(len(tdoubl1)),fmt="o", color=dfunc.colour_Lambda(Lambdas[0]))
-    plt.scatter(np.ones(len(tdoubl1))*Lambdas[0],tdoubl1,color=dfunc.colour_Lambda(Lambdas[0]),alpha=0.4,s=1)
+    plt.errorbar(Lambdas[0],np.mean(tdoubl1),yerr=np.std(tdoubl1)/np.sqrt(len(tdoubl1)),fmt="x", color="k")
+    plt.scatter(np.ones(len(tdoubl1))*Lambdas[0],tdoubl1,color="k",alpha=0.6,s=3)
                  
     if len(Lambdas)!=1:
-        plt.errorbar(Lambdas[1],np.mean(tdoubl2),yerr=np.std(tdoubl2)/np.sqrt(len(tdoubl2)),fmt="o", color=dfunc.colour_Lambda(Lambdas[1]))
-        plt.scatter(np.ones(len(tdoubl2))*Lambdas[1],tdoubl2,color=dfunc.colour_Lambda(Lambdas[1]),alpha=0.4,s=2)
+        plt.errorbar(Lambdas[1],np.mean(tdoubl2),yerr=np.std(tdoubl2)/np.sqrt(len(tdoubl2)),fmt="x", color="k")
+        plt.scatter(np.ones(len(tdoubl2))*Lambdas[1],tdoubl2,color="k",alpha=0.6,s=3)
     
     return Lambdas
 
@@ -1686,14 +1802,14 @@ def plot_fraction_time(data_dir, width=60):
     plt.plot(time_steps,frac2,color=dfunc.colour_Lambda(Lambdas[1]))
     return Lambdas
 
-def plot_fraction_time_ratio(data_dir, width=60):
+def plot_fraction_time_ratio(data_dir, width=40):
     time_steps, Lambda1_counts, Lambda2_counts, Lambdas = dfunc.counts(data_dir,channels=True, width=width)
     Lambdas = sorted(Lambdas)
     ratio = Lambdas[1]/Lambdas[0]
     frac1,frac2 = dfunc.calc_fraction(np.asarray(Lambda1_counts), np.asarray(Lambda2_counts))
 
-    plt.plot(time_steps,frac1,"--",color=dfunc.colour_Lambda(ratio))
-    plt.plot(time_steps,frac2,"-",color=dfunc.colour_Lambda(ratio))
+    #plt.plot(time_steps,frac1,"--",color=dfunc.colour_Lambda(ratio))
+    plt.plot(np.asarray(time_steps)-3,frac2,"-",color=dfunc.colour_ratio(ratio))
     return ratio
 
 def plot_average_fraction(data_dirs,width=60):
@@ -1755,7 +1871,7 @@ def plot_initial_final(data_dir,width=40):
     return [Lambdas[Lambdas != 1.0][0]]
 
 def plot_whisker_initial_final(data_dirs,width=40,ax=None):
-    initial_lower = []
+    initial_higher = []
     final_lower= []
     final_higher = []
     Lambdas = []
@@ -1763,25 +1879,27 @@ def plot_whisker_initial_final(data_dirs,width=40,ax=None):
         time_steps, Lambda1_counts, Lambda2_counts, Lambdas = dfunc.counts(data_dir,channels=True, width=width)
         Lambdas += sorted(Lambdas)
         frac1,frac2 = dfunc.calc_fraction(np.asarray(Lambda1_counts), np.asarray(Lambda2_counts))
-        initial_lower.append(frac1[0])
+        initial_higher.append(frac2[0])
         final_lower.append(frac1[-1])
         final_higher.append(frac2[-1])
 
-    initial_ratios = set(initial_lower)
+    initial_ratios = np.sort(np.unique(initial_higher))
     final_lower = np.asarray(final_lower)
     final_higher = np.asarray(final_higher)
-    initial_lower = np.asarray(initial_lower)
+    initial_higher = np.asarray(initial_higher)
     Lambdas = np.unique(np.asarray(Lambdas))
     for initial in initial_ratios:
-        mask = np.where(initial_lower == initial)[0]
+        mask = np.where(initial_higher == initial)[0]
         if ax == None:
-            bplot = plt.boxplot([final_lower[mask],final_higher[mask]],positions=np.ones(2)*int(30*initial),patch_artist=True,widths=np.ones(2)*5*(max(initial_ratios)-min(initial_ratios)))
+            bplot = plt.boxplot([final_lower[mask],final_higher[mask]],positions=np.ones(2)*initial,patch_artist=True,widths=np.ones(2)*0.08)
+            
         else:
-            bplot = ax.boxplot([final_lower[mask],final_higher[mask]],positions=np.ones(2)*int(30*initial),patch_artist=True,widths=np.ones(2)*5*(max(initial_ratios)-min(initial_ratios)))
+            bplot = ax.boxplot([final_lower[mask],final_higher[mask]],positions=np.ones(2)*initial,patch_artist=True,widths=np.ones(2)*0.08)
 
         for i,patch in enumerate(bplot['boxes']):
             patch.set_facecolor(dfunc.colour_Lambda(Lambdas[i]))
-    
+    plt.xticks(initial_ratios, [f"{x:.2f}" for x in initial_ratios])
+    plt.xlim(initial_ratios[0]-0.05, initial_ratios[-1]+0.05)
     return Lambdas
 
 def fraction_center(data_dir,width=40):
@@ -1824,13 +1942,12 @@ def fraction_center(data_dir,width=40):
     plt.plot(time_steps, Lambda2_frac,color = dfunc.colour_Lambda(Lambdas[1]))
     return ratio
 
-def cells_change_fraction(data_dir, width=40,norm=False,t_star=False):
+def cells_change_fraction(data_dir, width=40,norm=False,t_star=False,par2=False):
     time_steps, Lambda1_counts, Lambda2_counts, Lambdas = dfunc.counts(data_dir,channels=True, width=width)
     Lambdas = sorted(Lambdas)
     frac1,frac2 = dfunc.calc_fraction(np.asarray(Lambda1_counts), np.asarray(Lambda2_counts))
 
     initial_frac = frac2[0]
-
 
     time_steps = np.asarray(time_steps)-3.0
     frac1 = abs((frac1 - frac1[0])/(1-frac1[0]))
@@ -1838,32 +1955,95 @@ def cells_change_fraction(data_dir, width=40,norm=False,t_star=False):
 
     ratio = Lambdas[1]/Lambdas[0]
 
-    par = [1]
+    par = [1,1]
+    norm_timesteps = time_steps
     if norm:
-        par,err = dfunc.find_tanh_param(time_steps[30:],frac2[30:])
-        print(f"f0={initial_frac}: tanh(t*({round(par[0],2)}+-{round(err[0],2)}))")
-
-    norm_timesteps = time_steps/par[0]
-
-   
-
+        par,err = dfunc.find_tanh_1param(time_steps[30:],frac2[30:])
+        if par2:
+            try:
+                par,err = dfunc.find_tanh_2param(time_steps[30:],frac2[30:],par[0])
+                print(f"f0={initial_frac}: ({round(par[1],2)}+-{round(err[1],2)})*tanh(t/({round(par[0],2)}+-{round(err[0],2)}))")
+            except:
+                print(f"Could not find values for f0={initial_frac}, ratio={ratio}")
+                return 0
+            frac2 = frac2/par[1]
+        else:
+            print(f"f0={initial_frac}: tanh(t/({round(par[0],2)}+-{round(err[0],2)}))")
+        norm_timesteps = time_steps/par[0]
+    
     #plt.plot(time_steps[30:],frac1[30:],color=dfunc.colour_Lambda(Lambdas[0]))
-    match round(initial_frac,2):
-        case 0.50:
-            plt.scatter(norm_timesteps,frac2,marker="x",s=5,color=dfunc.colour_ratio(ratio))
-        case 0.33:
-            plt.scatter(norm_timesteps,frac2,marker="o",s=5,color=dfunc.colour_ratio(ratio))
-        case 0.2:
-            plt.scatter(norm_timesteps,frac2,marker="*",s=5,color=dfunc.colour_ratio(ratio))
-        case 0.1:
-            plt.scatter(norm_timesteps,frac2,marker="v",s=5,color=dfunc.colour_ratio(ratio))
-        case _:
-            print(initial_frac)
-            plt.plot(norm_timesteps,frac2,color=dfunc.colour_ratio(ratio))
-    if t_star:
-        return ratio,norm_timesteps,par[0],initial_frac
-    else:
+    if not t_star:
+        match round(initial_frac,2):
+            case 0.50:
+                plt.scatter(norm_timesteps,frac2,marker="x",s=5,color=dfunc.colour_ratio(ratio),alpha=0.5,linewidth=1)
+            case 0.33:
+                plt.scatter(norm_timesteps,frac2,marker="o",s=5,color=dfunc.colour_ratio(ratio),alpha=0.5,linewidth=1)
+            case 0.2:
+                plt.scatter(norm_timesteps,frac2,marker="*",s=5,color=dfunc.colour_ratio(ratio),alpha=0.5,linewidth=1)
+            case 0.1:
+                plt.scatter(norm_timesteps,frac2,marker="v",s=5,color=dfunc.colour_ratio(ratio),alpha=0.5,linewidth=1)
+            case _:
+                print(initial_frac)
+                plt.plot(norm_timesteps,frac2,color=dfunc.colour_ratio(ratio),alpha=0.5)
         return ratio,norm_timesteps
+    if t_star:
+        return ratio,par,initial_frac
+
+def surface_frac_analytical_param(data_dirs,c):
+    raw1 = []
+    raw2 = []
+    Lam = []
+    time = []
+    max_len = 0
+
+    # 1. Collect raw data and find the longest timeline
+    for data_dir in data_dirs:
+        time_steps, frac_interface, frac_external, Lambdas = dfunc.surface_fraction_high(data_dir)
+
+        raw1.append(frac_interface)
+        raw2.append(frac_external)
+        Lam.append(Lambdas)
+
+        # Track the longest time sequence
+        if len(time_steps) > max_len:
+            time = np.asarray(time_steps)
+            max_len = len(time_steps)
+    Lam = np.unique(Lambdas)
+    fraction1 = []
+    fraction2 = []
+
+    if len(Lambdas) != 1:
+
+        # Pad the shorter sequences with NaN up to max_len
+        for item1, item2 in zip(raw1, raw2):
+            padded1 = list(item1) + [np.nan] * (max_len - len(item1))
+            fraction1.append(padded1)
+
+            padded2 = list(item2) + [np.nan] * (max_len - len(item2))
+            fraction2.append(padded2)
+
+        fraction1 = np.asarray(fraction1)
+        fraction2 = np.asarray(fraction2)
+
+        # Number of valid datapoints at each position
+        count1 = np.sum(~np.isnan(fraction1), axis=0)
+
+        # Only retain positions with >= 2 datapoints
+        mask1 = count1 >= 2
+
+        avg1 = np.nanmean(fraction1[:, mask1], axis=0)
+        std1 = np.nanstd(fraction1[:, mask1], axis=0)/np.sqrt(count1[mask1])
+
+        plt.errorbar(time[mask1], avg1,yerr=std1,fmt="x", color=c)
+
+    save = False
+    if save:
+        data = np.asarray([avg1,std1])
+        header = "avg\tstdev"
+        np.savetxt("Inner_fraction_Lambda"+str(Lam[1]), np.transpose(data), delimiter="\t", fmt="%g",header=header)
+    return [Lam[1]]
+
+
 
 
 

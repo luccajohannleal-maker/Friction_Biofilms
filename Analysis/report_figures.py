@@ -110,11 +110,71 @@ def figure1():
     plt.show()
 
 
+import matplotlib as mpl
 
+def make_plot_IC():
+    fig, axes = plt.subplots(1,1, figsize=(6, 4), constrained_layout=True, facecolor='w')
+    dt = 0.0001
+    tend = 6
+    time = np.arange(0,tend,dt)
+
+    mu=5
+    av_l=4.75
+    t0 = 3
+    tau=1.8
+
+    x = np.linspace(0.05,0.15,20)
+
+
+    n_lines = 20
+    cmap = mpl.colormaps['plasma']
+
+    # Take colors at regular intervals spanning the colormap.
+    colors = cmap(np.linspace(0, 1, n_lines))
+
+
+    fraction = np.zeros((len(time),len(x)))
+    for i in range(0,len(x)):
+        r0 = np.sqrt(2)*2**(t0/tau)
+        
+        sgreen,sblue = analytical.evolve_time(time,frac_s0=x[i],dt=dt,mu=mu,av_l=av_l,R0=r0,tau=tau)
+
+        fraction[:,i] = sblue/sgreen
+        if (i==0) or (i==len(x)-1):
+            axes.plot(time,fraction[:,i],c=colors[i],label=f"$s_1(0) = {round(x[i],2)}s_2(0)$")
+        else:
+            axes.plot(time,fraction[:,i],c=colors[i])
+    
+
+
+    av_fraction = np.mean(fraction,axis=1)
+    print("average starting farction =",av_fraction[0])
+    err_fraction = np.std(fraction,axis=1)/np.sqrt(len(x))
+    
+
+    analytical.plot_data(5,axes)
+    analytical.plot_data(10,axes)
+
+
+
+    axes.plot(time,av_fraction,"-",c="k",label=r"$s_1(0) = 0.1s_2(0)$",linewidth=5)
+    axes.set_ylabel(r"Fraction of interface, $s_1/s_2 = \phi$",fontsize = 15)
+    axes.set_xlabel("$t-t_{collision}$",fontsize = 15)
+    axes.legend(fontsize = 15)
+
+                
+    save_path = os.path.join("C:\\Users\\lucca\\Desktop\\GeneratedOutput", f"IC_changes.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved plot to: {save_path}")
+
+    plt.show()    
+
+
+make_plot_IC()
 
 
 def figureX():
-    fig, axes = plt.subplots(1,2, figsize=(8,3), constrained_layout=True, facecolor='w')
+    fig, axes = plt.subplots(1,1, figsize=(6, 4), constrained_layout=True, facecolor='w')
     interacting10 = pfunc.repeat_files(data_loc+"Interacting_colonies\\stress\\Lambda1AND10",5)+pfunc.repeat_files(data_loc+"Interacting_colonies\\sameIC\\Lambda1AND10",2)
     interacting5 = pfunc.repeat_files(data_loc+"Interacting_colonies\\stress\\Lambda1AND5",4)+pfunc.repeat_files(data_loc+"Interacting_colonies\\sameIC\\Lambda1AND5",2) + pfunc.repeat_files(data_loc+"Interacting_colonies\\long",1)
 
@@ -124,6 +184,7 @@ def figureX():
     tend5 = 0 
 
     for data_dir in interacting10:
+
         files = pfunc.get_file_paths(data_dir)
         t_collision = dfunc.colonies_collided(files)
         t0_10.append(t_collision)
@@ -143,22 +204,23 @@ def figureX():
         if tend5 < round(float(tfinal)*0.1-t_collision,1):
             tend5 = round(float(tfinal)*0.1-t_collision,1)
 
-    analytical.plot_average_inner_fraction(t0_10,tend10,10,axes[0])
-    analytical.plot_average_inner_fraction(t0_5,tend5,5,axes[1])
+    analytical.plot_average_inner_fraction(t0_10,tend10,10,axes)
+    analytical.plot_average_inner_fraction(t0_5,tend5,5,axes,line=False)
 
-    axes[0].set_title(r"$\Lambda=10$")
-    axes[1].set_title(r"$\Lambda=5$")
-    axes[0].legend()
-    axes[1].legend()
-    for ax in axes.flat:
-        ax.set(xlabel=r'$t - t_{collision}$', ylabel=r'<interface fraction>')
+    axes.plot([0,6.5],[0.7,0.7],"k--", label=r"prediction $\phi_{max}$")
+    axes.set_xlim([0,6.5])
+    axes.set_ylim([0,0.8])
 
-    # Hide x labels and tick labels for top plots and y ticks for right plots.
-    for ax in axes.flat:
-        ax.label_outer()
+    axes.legend(fontsize=15)
+    axes.set_xlabel(r'Time after collision, $t - t_{collision}$ (h)', fontsize=15)
+    axes.set_ylabel(r'fraction, $\phi$', fontsize=15)
+
+                
+    save_path = os.path.join("C:\\Users\\lucca\\Desktop\\GeneratedOutput", f"wrapping_model_fraction.pdf")
+    plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
+    print(f"Saved plot to: {save_path}")
 
     plt.show()
-
 
 
 figureX()

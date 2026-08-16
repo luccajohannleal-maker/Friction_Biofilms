@@ -130,7 +130,7 @@ std::vector<IBacterium*> initialiseBiofilm(
                     x, y, 0,  //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
-                    RodShapedBacterium::mAvgGrwthRate/constants::Lambda1, // Type A growth rate
+                    RodShapedBacterium::mAvgGrwthRate, // Type A growth rate
                     4, // Type A initial length
                     0, // non-chaining, 1 for chaining
                     0.5, //radius of the cell
@@ -144,7 +144,7 @@ std::vector<IBacterium*> initialiseBiofilm(
                     x, y, 0, //random position x, y, z (in 2D z=0)
                     angle,// Random angle
                     constants::pi * 0.5, 
-                    RodShapedBacterium::mAvgGrwthRate/constants::Lambda2, // Type B growth rate
+                    RodShapedBacterium::mAvgGrwthRate, // Type B growth rate
                     4, // Type B initial length
                     0, // non-chaining, 1 for chaining
                     0.5, //radius of the cell
